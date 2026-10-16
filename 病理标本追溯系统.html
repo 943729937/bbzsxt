@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="9vpVtH6kQJMho1BwqUcSsF"><head data-page-node-id="0xFKokUkF8id3edD9xpLVP">
+<meta charset="UTF-8" data-page-node-id="V4MzeUmDs3VTpymSKB9Hkm">
+<title>病理标本追溯系统 - 高保真原型</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#dfe3e8;font-family:"Microsoft YaHei","PingFang SC",sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+  /* ============ 全局顶栏 + 横向菜单 ============ */
+  .top{height:46px;background:#2e6bc6;display:flex;align-items:stretch;color:#fff;flex-shrink:0;padding-right:18px}
+  .logo{display:flex;align-items:center;gap:7px;padding:0 18px;font-size:17px;font-weight:700;letter-spacing:1px;flex-shrink:0}
+  .logo .mark{width:26px;height:20px;background:
+    linear-gradient(90deg,#f5a623 0 30%,#4ac0e8 30% 55%,#7ed321 55% 75%,#e8564f 75%);border-radius:2px}
+  .nav{display:flex;align-items:stretch;overflow-x:auto;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .tab{display:flex;align-items:center;gap:6px;padding:0 15px;font-size:13px;cursor:pointer;position:relative;white-space:nowrap;user-select:none;flex-shrink:0}
+  .tab .ico{width:13px;height:13px;border:1.5px solid rgba(255,255,255,.85);border-radius:3px;display:inline-block;flex-shrink:0}
+  .tab:hover{background:rgba(255,255,255,.08)}
+  .tab.on{background:#1c4da0;font-weight:600}
+  .tab.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:#fff}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:13px;flex-shrink:0}
+  .top-right .pill{background:rgba(255,255,255,.18);border-radius:12px;padding:3px 12px}
+  /* 二级菜单条 */
+  .subbar{height:38px;background:#fff;border-bottom:1px solid #d9dee5;display:flex;align-items:stretch;padding:0 20px;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+  .subbar::-webkit-scrollbar{display:none}
+  .sub-grp{display:flex;align-items:stretch;gap:34px}
+  .sub{display:flex;align-items:center;font-size:13px;color:#606266;cursor:pointer;white-space:nowrap;position:relative;user-select:none;border-bottom:2px solid transparent}
+  .sub:hover{color:#1e9fff}
+  .sub.on{color:#1e9fff;font-weight:600;border-bottom-color:#1e9fff}
+  /* ============ 内容区 ============ */
+  .main{flex:1;min-height:0;overflow:auto;padding:16px 20px}
+  .pg-sec{display:none}
+  .pg-sec.on{display:block}
+  .page{width:100%;min-width:1360px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.1);display:flex;flex-direction:column;min-height:640px;margin:0 auto}
+  .crumb{display:flex;align-items:center;gap:6px;padding:12px 16px 0;font-size:13px;color:#909399}
+  .crumb b{color:#303133;font-weight:600}
+  .sec-h{display:flex;align-items:center;gap:8px;padding:14px 16px 6px;font-size:14px;font-weight:700;color:#303133}
+  .sec-h .bar{width:3px;height:14px;background:#1e9fff;border-radius:1px;display:inline-block}
+  /* 查询栏 */
+  .qbar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #e8eaee;font-size:13px;color:#333;flex-shrink:0;flex-wrap:wrap}
+  .qbar .lb{color:#333;white-space:nowrap}
+  .qbar input,.qbar select{height:28px;border:1px solid #cfd6e0;border-radius:2px;font-size:13px;padding:0 8px;color:#333;outline:none;background:#fff}
+  .date{width:180px}
+  .kw{width:150px}
+  .qbar .btn{margin-left:auto;display:flex;gap:10px}
+  .btn-q{min-width:72px;height:28px;border:none;border-radius:2px;background:#1e9fff;color:#fff;font-size:13px;cursor:pointer}
+  .btn-n{min-width:72px;height:28px;border:1px solid #cfd6e0;border-radius:2px;background:#fff;color:#333;font-size:13px;cursor:pointer}
+  .btn-n.warn{color:#e6a23c;border-color:#e6a23c}
+  .btn-n.warn:hover{background:#fdf6ec}
+  .btn-q:hover{background:#4db3ff}
+  .btn-n:hover{background:#eaf6ff}
+  /* 表格 */
+  .tbl{margin:12px 16px 0;border:1px solid #d9dee5;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  th,td{border:1px solid #d9dee5;height:34px;font-size:13px;color:#333;text-align:center;overflow:hidden;white-space:nowrap}
+  th{background:#eef2f7;font-weight:600;color:#333}
+  .op a{color:#1e9fff;margin:0 5px;cursor:pointer}
+  .op a:hover{text-decoration:underline}
+  .op a.del{color:#f56c6c}
+  .pg{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:14px 16px;font-size:13px;color:#333}
+  .pg .p{min-width:32px;height:28px;border:1px solid #cfd6e0;border-radius:2px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:default}
+  .pg .p.on{background:#1e9fff;border-color:#1e9fff;color:#fff}
+  .ft{margin-top:auto;height:28px;background:#2e6bc6;color:#fff;font-size:12px;display:flex;align-items:center;padding:0 14px;opacity:.92}
+  .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#a8abb2;font-size:14px;padding:80px 0}
+  .empty .e-ico{width:64px;height:64px;border:2px dashed #cfd6e0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#cfd6e0}
+  .chk{width:13px;height:13px;accent-color:#1e9fff;cursor:pointer}
+  /* 便笺 */
+  .note{background:#ffe100;border-radius:3px;box-shadow:2px 3px 8px rgba(0,0,0,.22);padding:12px 14px;font-size:13px;line-height:1.75;color:#222;position:relative;margin:14px 16px}
+  .note::before{content:"说明";position:absolute;top:-11px;left:12px;background:#ffd400;font-size:11px;font-weight:700;padding:2px 10px;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  /* 病理申请右侧 */
+  .apply-wrap{display:flex;align-items:flex-start;gap:18px;width:100%}
+  .apply-wrap .page{width:1600px;flex-shrink:0}
+  .side{width:352px;flex-shrink:0;display:flex;flex-direction:column;gap:14px;padding-top:16px}
+  .panel{background:#fff;border:1px solid #d9dee5;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+  .panel .p-t{font-size:16px;font-weight:700;color:#1e9fff;padding:12px 16px 6px}
+  .p-info{display:grid;grid-template-columns:1fr 1fr;gap:8px 6px;padding:4px 16px 12px;font-size:13px;color:#333}
+  .p-info .full{grid-column:1/3}
+  .p-tbl{margin:0 16px 16px;border:1px solid #d9dee5}
+  .p-tbl th,.p-tbl td{height:30px}
+  /* 条码管理/系统设置 双栏 */
+  .conf-wrap{display:flex;gap:16px;padding:16px;align-items:flex-start}
+  .conf-side{width:150px;flex-shrink:0;border:1px solid #d9dee5;background:#fafbfc}
+  .conf-side .cs-i{padding:12px 10px;text-align:center;font-size:13px;color:#333;border-bottom:1px solid #e8eaee;cursor:pointer}
+  .conf-side .cs-i:last-child{border-bottom:none}
+  .conf-side .cs-i.on{background:#fff;color:#1e9fff;font-weight:600;border-left:3px solid #1e9fff}
+  .conf-main{flex:1;border:1px solid #d9dee5;padding:0 0 16px}
+  .conf-head{display:flex;align-items:center;gap:14px;padding:12px 14px;border-bottom:1px solid #e8eaee}
+  .conf-head .t{font-size:14px;font-weight:700;color:#303133}
+  .conf-head .sp{flex:1}
+  .inline-add{height:26px;min-width:64px;border:none;border-radius:2px;background:#1e9fff;color:#fff;font-size:13px;cursor:pointer}
+  .inline-add:hover{background:#4db3ff}
+  /* 标本接收下半区 */
+  .recv-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 16px 16px}
+  .recv-box{border:1px solid #d9dee5;min-height:200px;display:flex;flex-direction:column}
+  .recv-box .rb-h{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid #e8eaee;font-size:13px;flex-wrap:wrap}
+  .recv-box .rb-h .t{font-size:14px;font-weight:700;color:#303133}
+  .recv-box .rb-q{display:flex;align-items:center;gap:10px;padding:10px 12px;font-size:13px;flex-wrap:wrap}
+  .recv-box .rb-b{flex:1;display:flex;align-items:center;justify-content:center;color:#c0c4cc;font-size:13px}
+  .stat-num{color:#1e9fff;font-weight:700}
+  /* 标本采集双栏 */
+  .collect-wrap{display:grid;grid-template-columns:340px 1fr;gap:16px;padding:16px;align-items:start}
+  .collect-left{border:1px solid #d9dee5;padding:16px}
+  .collect-left .frow-line>label{width:80px}
+  .collect-left input[disabled]{background:#f5f7fa}
+  .collect-right{border:1px solid #d9dee5;padding:16px;min-height:300px}
+  /* 弹窗表单 */
+  .sec-t{font-size:14px;font-weight:700;color:#303133;margin:6px 0 12px;display:flex;align-items:center;gap:7px}
+  .sec-t .bar{width:3px;height:14px;background:#3a7afe;border-radius:1px;display:inline-block}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px 18px;margin-bottom:12px}
+  .fl{display:flex;align-items:center;min-width:0}
+  .fl label{font-size:13px;color:#606266;white-space:nowrap;flex-shrink:0}
+  .fl label i{color:#f56c6c;font-style:normal;margin-right:2px}
+  .fl input,.fl select{flex:1;min-width:0;height:30px;border:1px solid #DCDFE6;border-radius:3px;padding:0 8px;font-size:13px;color:#606266;font-family:inherit;outline:none;background:#fff}
+  .fl input::placeholder{color:#A8ABB2}
+  .fl input:focus,.fl select:focus,.frow-line textarea:focus{border-color:#3a7afe}
+  .frow-line{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  .frow-line>label{font-size:13px;color:#606266;white-space:nowrap;flex-shrink:0}
+  .frow-line>label.req::before{content:"*";color:#f56c6c;margin-right:2px}
+  .frow-line>input{flex:1;height:30px;border:1px solid #DCDFE6;border-radius:3px;padding:0 8px;font-size:13px;color:#606266;outline:none}
+  .frow-line .rd{display:flex;align-items:center;gap:5px;font-size:13px;color:#606266;cursor:pointer}
+  .frow-line .rd .r{width:13px;height:13px;border:1px solid #c0c4cc;border-radius:50%;display:inline-block;position:relative;background:#fff}
+  .frow-line .rd .r.on{border-color:#3a7afe}
+  .frow-line .rd .r.on::after{content:"";position:absolute;left:3px;top:3px;width:5px;height:5px;border-radius:50%;background:#3a7afe}
+  .frow-line.ta{align-items:flex-start}
+  .frow-line.ta>label{line-height:30px}
+  .frow-line textarea{flex:1;height:64px;border:1px solid #DCDFE6;border-radius:3px;padding:6px 8px;font-size:13px;color:#606266;font-family:inherit;resize:vertical;outline:none}
+  .addrow{height:28px;padding:0 14px;border:1px solid #3a7afe;border-radius:3px;background:#fff;color:#3a7afe;font-size:13px;cursor:pointer;font-family:inherit}
+  .addrow:hover{background:#ecf5ff}
+  .sp-tbl{border:1px solid #DCDFE6;border-radius:3px;overflow:hidden;margin-top:10px}
+  .sp-tbl th{background:#f5f7fa;font-size:13px;color:#606266;font-weight:600;height:34px;border-bottom:1px solid #DCDFE6}
+  .sp-tbl td{height:40px;text-align:center;border-bottom:1px solid #ebeef5;padding:3px 6px}
+  .sp-tbl tr:last-child td{border-bottom:none}
+  .sp-tbl input{width:92%;height:28px;border:1px solid #DCDFE6;border-radius:3px;padding:0 8px;font-size:12px;color:#606266;outline:none;font-family:inherit}
+  .sp-tbl input::placeholder{color:#A8ABB2}
+  .sp-tbl select{width:92%;height:28px;border:1px solid #DCDFE6;border-radius:3px;font-size:12px;color:#606266;outline:none;background:#fff;font-family:inherit}
+  .sp-tbl .del{color:#3a7afe;font-size:13px;cursor:pointer}
+  .sp-tbl .del:hover{text-decoration:underline}
+  .d-btn{height:32px;padding:0 18px;border:1px solid #DCDFE6;background:#fff;border-radius:3px;color:#606266;font-size:13px;cursor:pointer;font-family:inherit}
+  .d-btn:hover{color:#3a7afe;border-color:#c6e2ff;background:#ecf5ff}
+  .d-btn.primary{background:#3a7afe;border-color:#3a7afe;color:#fff}
+  .d-btn.primary:hover{background:#2f6cea;border-color:#2f6cea}
+  /* 预览 */
+  .pv-i{cursor:pointer;font-size:15px;opacity:.9}
+  .pv-i:hover{opacity:1}
+  .pv-cell{border:1px solid #000;padding:6px 8px;text-align:left}
+  .pv-sec{border:1px solid #000;border-bottom:none;height:96px;padding:6px 8px;font-size:12px;margin-top:14px}
+  .pv-line{border:1px solid #000;padding:6px 8px;font-size:12px;margin-top:-1px}
+</style>
+<style id="__dm_no_drag_style__">* { -webkit-user-drag: none !important; }</style><style id="__dm_bindable_badge_style__">[data-sp-bindable="database"]{outline:1px dashed #0088ff;outline-offset:2px;border-radius:4px;}[data-sp-bindable="database"] *{pointer-events:none !important;transition:none !important;animation:none !important;}[data-sp-bindable="database"]{transition:none !important;animation:none !important;}</style></head>
+<body data-page-node-id="Qy8DFGPEnTPVkC3wzatwvU" style="">
+
+<!-- 全局顶栏 + 一级/二级菜单 -->
+<div class="top" data-page-node-id="JwkRM1fx1Bvv2PYb3QjO0j">
+  <div class="logo" data-page-node-id="1KEk3RfFpEno8BPpauPX38"><span class="mark" data-page-node-id="5DFNjVNEeibnjg5UU2RXGK" data-ed-base=""></span>标本追溯</div>
+  <div class="nav" id="nav" data-page-node-id="C0NsrUFoRUrfBuOsGSIYNi">
+    <div class="tab on" data-menu="mSample" data-default="pgApply" data-page-node-id="9oAZu8V8ULNrUvIrBAbnIa"><span class="ico" data-page-node-id="gaylSeeNPOpOsBCfguH2Ct" data-ed-base=""></span>标本管理</div>
+    <div class="tab" data-menu="mStat" data-default="pgStat" data-page-node-id="0UVluWNtEQ9ZZ3YAijPrWY"><span class="ico" data-page-node-id="0Blg7i9WM6cGvAYMfLEfrd" data-ed-base=""></span>统计报表</div>
+    <div class="tab" data-menu="mSetting" data-default="pgFlow" data-page-node-id="uO3oBWroajrqh8UvpsFChE"><span class="ico" data-page-node-id="QI7m5htdRhPoTMmB7GAP9N" data-ed-base=""></span>系统设置</div>
+    <div class="tab" data-menu="mMonitor" data-default="pgMonitor" data-page-node-id="M1qGxJnABdhvJJbZuSYwLA"><span class="ico" data-page-node-id="MNXZSNYT9Y0oLvJE2zuGc7" data-ed-base=""></span>标本监控</div>
+  </div>
+  <div class="top-right" data-page-node-id="l9i2CvjG5K1nDuuaZ1B7CQ"><span class="pill" data-page-node-id="PsgK54lShfIF19ex8kM025" data-ed-base="1 ∨">1 ∨</span><span data-page-node-id="pDFpc2pwvfTpJNzXfgGaGC" data-ed-base="🕐">🕐</span><span data-page-node-id="qwPm1X2Up0Sxu8DOZJNodu" data-ed-base="dhh ∨">dhh ∨</span></div>
+</div>
+<!-- 二级菜单条 -->
+<div class="subbar" id="subbar" data-page-node-id="x9clJTyZnKokadyYE2qtZ8">
+  <div class="sub-grp on" id="mSample" data-page-node-id="RdyC2SMRcEP7Hg7zn8zFAx">
+    <span class="sub on" data-pg="pgApply" data-page-node-id="ykNcGV3DZUaDtDq9q88gDb" data-ed-base="病理申请">病理申请</span>
+    <span class="sub" data-pg="pgCodePrint" data-page-node-id="kgJZTPNBtQEcFtZ5iDU9dl" data-ed-base="条码打印">条码打印</span>
+    <span class="sub" data-pg="pgCollect" data-page-node-id="FO2sVhCcbjLtFnIkVCuKQu" data-ed-base="标本采集">标本采集</span>
+    <span class="sub" data-pg="pgPack" data-page-node-id="xZIsAU6jsuhAlq01cJL4jA" data-ed-base="标本打包">标本打包</span>
+    <span class="sub" data-pg="pgSend" data-page-node-id="fTFGh56UWuYRZBZ601p4ZH" data-ed-base="标本输送">标本输送</span>
+    <span class="sub" data-pg="pgRecv" data-page-node-id="dzw1rwZR8CZSMCaRgQjSeW" data-ed-base="标本接收">标本接收</span>
+    <span class="sub" data-pg="pgBack" data-page-node-id="Wbtfsk7RZ8ptTRdOavUA7v" data-ed-base="退回接收">退回接收</span>
+    <span class="sub" data-pg="pgTrace" data-page-node-id="Aj3nhmKYLkInvwXgiPv7Jh" data-ed-base="标本追溯">标本追溯</span>
+  </div>
+  <div class="sub-grp" id="mStat" style="display:none" data-page-node-id="UBFFdgAh5BjUUwnFwlmQuM">
+    <span class="sub" data-pg="pgStat" data-page-node-id="IjpudPspf2y20JcPvnvPNO" data-ed-base="统计报表">统计报表</span>
+  </div>
+  <div class="sub-grp" id="mSetting" style="display:none" data-page-node-id="y0CsS3OLHB4P83MIpJjcpZ">
+    <span class="sub" data-pg="pgFlow" data-page-node-id="2kK7mUE3Fbr15UEDukRkhe" data-ed-base="科室流程配置">科室流程配置</span>
+    <span class="sub" data-pg="pgTpl" data-page-node-id="Xh92qrNnCQ7wKiDm2cgaEc" data-ed-base="标签模板配置">标签模板配置</span>
+  </div>
+  <div class="sub-grp" id="mMonitor" style="display:none" data-page-node-id="nplBDjTRDplXjP3McRsnMM">
+    <span class="sub" data-pg="pgMonitor" data-page-node-id="ivHpgilTdWdKtKRNLLCkcg" data-ed-base="标本监控">标本监控</span>
+  </div>
+</div>
+
+<div class="main" id="main" data-page-node-id="PELBzj3UjBhVPNoCLoLwku" style="position: relative;">
+
+  <!-- ============ 病理申请 ============ -->
+  <div class="pg-sec on" id="pgApply" data-page-node-id="KA5MA8Nijaaj35f1U3UNWd">
+    <div class="apply-wrap" data-page-node-id="X5MDlFkl6eL43pwqYCa31O">
+      <div class="page" data-page-node-id="PoISqoPKjlwoUKC3i9jc1j">
+        <div class="crumb" data-page-node-id="bOotD86CTbKbCwe3E3tsYH">当前位置：标本管理 / <b data-page-node-id="SGV28KmCVG5Z6m36DlLo02" data-ed-base="病理申请">病理申请</b></div>
+        <div class="qbar" data-page-node-id="nQDDWA1tbnjNP8yzAZRqFP">
+          <span class="lb" data-page-node-id="RyI6NXwIZqCEi8mBMlNFjG" data-ed-base="申请日期：">申请日期：</span>
+          <input class="date" value="2022-02-02 至 2022-02-03" data-page-node-id="9NvvfSaQ7Y51130RsI7mC8" data-ed-base="">
+          <select class="kw" data-page-node-id="A8yAJ3RNK5C4JelOJDixNv"><option data-page-node-id="bO0TCNF3TqYF5HGHeaur0n" data-ed-base="患者姓名">患者姓名</option><option data-page-node-id="jA2npBCWlhzJQI5CIwUJUC" data-ed-base="门诊/住院号">门诊/住院号</option><option data-page-node-id="bIu3aFhxexuOWbIoCYp9JQ" data-ed-base="检查ID">检查ID</option><option data-page-node-id="cn5ODUY6HX1J7R1VIuu56H" data-ed-base="申请单号">申请单号</option></select>
+          <input class="kw" data-page-node-id="SEVy9oRcsEF28RwDxMg4dl" data-ed-base="">
+          <span class="lb" data-page-node-id="K6MnntFCR4PtXWury8ON5m" data-ed-base="医嘱项目：">医嘱项目：</span>
+          <input class="kw" data-page-node-id="19cyIEGNenVrYzfc5bGAw8" data-ed-base="">
+          <div class="btn" data-page-node-id="WVkAM9rC06JUSnGrZHfOnx"><button class="btn-q" onclick="doQuery()" data-page-node-id="UwjWyCXMHGUeotRRZpvq3N" data-ed-base="查 询">查 询</button><button class="btn-n" onclick="openForm('add')" data-page-node-id="gWAGRkfyQ9aVXTdDQnDnwV" data-ed-base="新 增">新 增</button></div>
+        </div>
+        <div class="tbl" data-page-node-id="B747K85uUDZB6sP5Qd5B2U">
+          <table data-page-node-id="MP9lkRxMenbrnFyQMS18iy">
+            <colgroup data-page-node-id="htSJ80fP8oD7EEcyKvtnAZ"><col style="width:52px" data-page-node-id="jEziiePffyhqqpiZPz78r3" data-ed-base=""><col style="width:150px" data-page-node-id="nwwA9jcsXxXBMiHnjqb1jZ" data-ed-base=""><col style="width:110px" data-page-node-id="SyWHUt1iBjQLhB2itQj9Qs" data-ed-base=""><col style="width:70px" data-page-node-id="37vopG7SbnleB3YcMjAV5x" data-ed-base=""><col style="width:70px" data-page-node-id="8i7VyBwv1nAKLkKrBg6KEM" data-ed-base=""><col style="width:110px" data-page-node-id="WBQELsvpssBfR1Br2FMRxB" data-ed-base=""><col style="width:130px" data-page-node-id="FCd8MjAahZdtMUe39Sf2TJ" data-ed-base=""><col style="width:100px" data-page-node-id="ti0iEGXn4VSJcJHwxHNYxg" data-ed-base=""><col style="width:100px" data-page-node-id="WES69K7np8BjVBsi3xPCsS" data-ed-base=""><col style="width:110px" data-page-node-id="HYShOKXQXyV7YHmDW5YkUQ" data-ed-base=""><col style="width:110px" data-page-node-id="j0mmAzbnOg2PTkl5QKqNqM" data-ed-base=""><col data-page-node-id="zrt9vm7AkoMkkmXfMTvDxF" data-ed-base=""></colgroup>
+            <thead data-page-node-id="A9XF1FIpVFbxdCMpwuikbH"><tr data-page-node-id="YQ5TukLav0vLqiSNKfMg6J"><th data-page-node-id="g1KC41A3QYR3W9Yz2hQC2T" data-ed-base="序号">序号</th><th data-page-node-id="0JEbADK4WJ9C1ujwev1LLB" data-ed-base="申请单号">申请单号</th><th data-page-node-id="sZUoZ34ZTMVEg8YixaJKkk" data-ed-base="患者姓名">患者姓名</th><th data-page-node-id="ZLs9G6p3yUDaSK4CoXb3ES" data-ed-base="年龄">年龄</th><th data-page-node-id="qCaFDcB1XvEPImhlvb0t9O" data-ed-base="性别">性别</th><th data-page-node-id="FABfylV9Z55Y7Cif9ZfLY0" data-ed-base="检查ID">检查ID</th><th data-page-node-id="WDSgxZZqBRH97EppIybuFM" data-ed-base="门诊/住院号">门诊/住院号</th><th data-page-node-id="zLBJIkoq4Hdffgg6DlaIpb" data-ed-base="患者来源">患者来源</th><th data-page-node-id="1tvMFQaATwARtNc3Z041qq" data-ed-base="标本数量">标本数量</th><th data-page-node-id="oSfdVbY5ss0iNjSCEwoajj" data-ed-base="申请科室">申请科室</th><th data-page-node-id="mcloFTBFDn1R9CfurO2Zcp" data-ed-base="申请医生">申请医生</th><th data-page-node-id="nosj8YoN9rOKiEzlCTSCYj" data-ed-base="操作">操作</th></tr></thead>
+            <tbody data-page-node-id="r9LXZOD5ki4KeWl1yNdwdk">
+              <tr data-page-node-id="x1EAmRAwEdzdpHF2EqzbEs"><td data-page-node-id="ZTqXqJFFn11DkjqkgFOjaB" data-ed-base="1">1</td><td data-page-node-id="pForGGEdmm6MvvhmChC1tD" data-ed-base="2520000315">2520000315</td><td data-page-node-id="A8PR53CED6rCN0RhK1ZrLd" data-ed-base="张小花">张小花</td><td data-page-node-id="yKWmDsqnbrdjCoX54ZNkjd" data-ed-base="32">32</td><td data-page-node-id="l8UyWFbMQUz3EVKDZjzlkm" data-ed-base="女">女</td><td data-page-node-id="IDYAy0JlXLTqHKWcVhYRqz" data-ed-base="2160001">2160001</td><td data-page-node-id="fK47tZJgIrRstYVmfXBFQg" data-ed-base=""></td><td data-page-node-id="mNZMfUk2yP0OwNYgjykXfD" data-ed-base=""></td><td data-page-node-id="GQMArGviiCi1KbY1dCq3jV" data-ed-base=""></td><td data-page-node-id="eIsViBSWBQN9y3fDfSyNHE" data-ed-base=""></td><td data-page-node-id="voQH8nEOxzMFpYbsI0Rv4F" data-ed-base=""></td><td class="op" data-page-node-id="RliQ5EaDGPzAYvsHxAg5Ri"><a onclick="openForm('preview',0)" data-page-node-id="7GG9cen4lJUJS4DSdOSGEf" data-ed-base="预览">预览</a><a onclick="openForm('edit',0)" data-page-node-id="WgpFdLqyVNstFnYvtXPKps" data-ed-base="修改">修改</a><a onclick="delRow(0)" data-page-node-id="0jiCWFd6rYQo8JccFebRnG" data-ed-base="删除">删除</a></td></tr>
+              <tr data-page-node-id="n9Jw3TniocENOkEGWtaXdK"><td data-page-node-id="d4kxdMtP9KNZLJEurcReLP" data-ed-base="2">2</td><td data-page-node-id="d7mfYISSc4h4J6XRDJC4Wd" data-ed-base="2520000316">2520000316</td><td data-page-node-id="oECMzXXdQDJNFNxU5MIytw" data-ed-base="李小花">李小花</td><td data-page-node-id="GHRnwCrHH9Se89ojdHUX2s" data-ed-base="32">32</td><td data-page-node-id="DMxB2I5F9hdODxENXeK5Hj" data-ed-base="女">女</td><td data-page-node-id="WHTe4nVREYH8ORElWDwP6L" data-ed-base="2160002">2160002</td><td data-page-node-id="OW6WX2JhzJMBUIM57jO2Yb" data-ed-base=""></td><td data-page-node-id="jbOwlaid9sVCuk7qDvmQaF" data-ed-base=""></td><td data-page-node-id="Ron37SojxoCEyjD9U90BRI" data-ed-base=""></td><td data-page-node-id="HC1kJx65mHLL05StIq39R9" data-ed-base=""></td><td data-page-node-id="3piGpg2jDFfNxUBvOCp3df" data-ed-base=""></td><td class="op" data-page-node-id="Tyzg37Qt4LIReTl4rBDNhB"><a onclick="openForm('preview',1)" data-page-node-id="CmewkwHLbYqca5sma1UobK" data-ed-base="预览">预览</a><a onclick="openForm('edit',1)" data-page-node-id="3yyAgdzoy90Vm8yIFeECnv" data-ed-base="修改">修改</a><a onclick="delRow(1)" data-page-node-id="zXAF9lDinX4qD6oGhaQ1UN" data-ed-base="删除">删除</a></td></tr>
+              <tr data-page-node-id="GAqzG6QHMESsrFkG172eQ5"><td data-page-node-id="aI6yusBWfDgD2OBLJIIoAE" data-ed-base=""></td><td data-page-node-id="rlQHUWV8u7p5pFGLDa0uM1" data-ed-base=""></td><td data-page-node-id="wLVCiEGZFlI0YooNCSNImJ" data-ed-base=""></td><td data-page-node-id="UMITpwGDhOi9vrfoEaOrF5" data-ed-base=""></td><td data-page-node-id="BEkbVFIZ47iuuq82RfNpXi" data-ed-base=""></td><td data-page-node-id="GcBrcV2GClvLqKisYl5M4p" data-ed-base=""></td><td data-page-node-id="ZNiJRKTnQs4gC7UE7kaHJG" data-ed-base=""></td><td data-page-node-id="gQvDXY4rmcF6ugTJps5Qym" data-ed-base=""></td><td data-page-node-id="FckHQFhXl5rRGrHYzCfYDY" data-ed-base=""></td><td data-page-node-id="P86tgK4ZIqPj3gPhHgxtuQ" data-ed-base=""></td><td data-page-node-id="pzf4jt3ekv385VJ2QODjHQ" data-ed-base=""></td><td data-page-node-id="r3qrHpkxnSEe8ROB4NCAwY" data-ed-base=""></td></tr>
+              <tr data-page-node-id="7k0wn2JKFYOFy31fDH9Ka2"><td data-page-node-id="KYvfx4QCEXEzbYZDoSGpKe" data-ed-base=""></td><td data-page-node-id="GedFhMwZqob5HlR5aKhGAp" data-ed-base=""></td><td data-page-node-id="5Izr5mLLvCfFqYLqOyCa3y" data-ed-base=""></td><td data-page-node-id="Vm4glGflCtvE7LXQGRBSnq" data-ed-base=""></td><td data-page-node-id="sWrEVCTT6hhPKUDahQZOBf" data-ed-base=""></td><td data-page-node-id="wHg3xCaZV6r0ndCDJleYl1" data-ed-base=""></td><td data-page-node-id="p3OQIFc6THaY49ZNpIcdff" data-ed-base=""></td><td data-page-node-id="BhR7dzxRbb3Z4wXsJfIsjA" data-ed-base=""></td><td data-page-node-id="5zHEcN6mXc0sAkWxDqc6H6" data-ed-base=""></td><td data-page-node-id="O2IFtbBDGMIJ1vRmqaApkU" data-ed-base=""></td><td data-page-node-id="7LzfQWfudEQA4QA39boLvH" data-ed-base=""></td><td data-page-node-id="m2022K4ymE6KfPtUCY0ung" data-ed-base=""></td></tr>
+              <tr data-page-node-id="Wr399rsJEHzVNyhPmryNEC"><td data-page-node-id="bG6OACKdf7EjJHk5qJLUo3" data-ed-base=""></td><td data-page-node-id="eTIJbZj2ruYvzzBGTYoP0m" data-ed-base=""></td><td data-page-node-id="SJYNyi7EC5ZrA0du9TrJtF" data-ed-base=""></td><td data-page-node-id="jkWLilQWnXCKdXkBarluuE" data-ed-base=""></td><td data-page-node-id="3lWL5uWhkVNgKUTxXmmetm" data-ed-base=""></td><td data-page-node-id="zhC15BgAP5jc3pd7j5TvmZ" data-ed-base=""></td><td data-page-node-id="AHXMf4ru7J4ip3NaE2orsg" data-ed-base=""></td><td data-page-node-id="01CRCumW4MA8zF0sdRze2j" data-ed-base=""></td><td data-page-node-id="gHmAONh5oDoqJJC2bQi4Xp" data-ed-base=""></td><td data-page-node-id="qP2ieBHtPiK6b2O3OK0Svv" data-ed-base=""></td><td data-page-node-id="KP42iIZSCfJAFcFfzDwDtf" data-ed-base=""></td><td data-page-node-id="85PlheLBum3RDhggun4DjL" data-ed-base=""></td></tr>
+              <tr data-page-node-id="Xy7zvIFpbAP9GE3IHzdivX"><td data-page-node-id="1ViFqZFscdb2FnloUiMw27" data-ed-base=""></td><td data-page-node-id="fsoVmLYzUBbFHLt5e1GPIs" data-ed-base=""></td><td data-page-node-id="jRThOpkDSfUFNdk9PFk1sG" data-ed-base=""></td><td data-page-node-id="2NLi3YA9iMRj58B0CmjTD7" data-ed-base=""></td><td data-page-node-id="rsw72lFxBHYNnZ4UlRdfkz" data-ed-base=""></td><td data-page-node-id="nazbwuHaHIh9mHMGy0HUoo" data-ed-base=""></td><td data-page-node-id="yCCWD8hKMdQ0z4XXy6otfu" data-ed-base=""></td><td data-page-node-id="1VoWNgWNfA4mI7tpgYTECW" data-ed-base=""></td><td data-page-node-id="4j2ycDTy92Q7aOR5VtYfH9" data-ed-base=""></td><td data-page-node-id="j3dJzhw46FTPHWjou8Rnor" data-ed-base=""></td><td data-page-node-id="EUPXNSgylJATqHXYTzHMoz" data-ed-base=""></td><td data-page-node-id="ixyOG3W5jZu4BFfivocQDr" data-ed-base=""></td></tr>
+              <tr data-page-node-id="OQEtJNS7oOpGHJqyLDeuc1"><td data-page-node-id="cW2NPSAYbFLXi43FYqguuA" data-ed-base=""></td><td data-page-node-id="StSngQzT2FRDxf6sxyPszE" data-ed-base=""></td><td data-page-node-id="flopL5FfQlPniTqtAaWWc5" data-ed-base=""></td><td data-page-node-id="YgFJfrzzd5oInINLu0Dxn0" data-ed-base=""></td><td data-page-node-id="KtOA3yTH31STfCXX7s4ilr" data-ed-base=""></td><td data-page-node-id="8r7ME51gPVVUN99VPXkKXG" data-ed-base=""></td><td data-page-node-id="f9XptIQ2KdzKC9KrnetBYE" data-ed-base=""></td><td data-page-node-id="LNMx8l7GHMXJMz6TuCkgqe" data-ed-base=""></td><td data-page-node-id="5A7tOQhIkpiBuxRWCOttH8" data-ed-base=""></td><td data-page-node-id="pxatok77y5CIdOUBOB2r1T" data-ed-base=""></td><td data-page-node-id="P74j3yVaLpgWaBm2derKrR" data-ed-base=""></td><td data-page-node-id="HQOCOz1q5tDtHjdbIWx8mW" data-ed-base=""></td></tr>
+              <tr data-page-node-id="b4QmkRY9HkGG7gDglAyCGa"><td data-page-node-id="tKewQkNVV7UqcpL8gODDsg" data-ed-base=""></td><td data-page-node-id="LOmlf0iEDXyRpjcadr6Pls" data-ed-base=""></td><td data-page-node-id="58PBmtLtapNteI8O0dgnAv" data-ed-base=""></td><td data-page-node-id="w4qoehQaXpXRkoGNyJXBim" data-ed-base=""></td><td data-page-node-id="bFep3yG2y1lBZYiF52R0fA" data-ed-base=""></td><td data-page-node-id="YdAeecURvD76mxLXg0eG4q" data-ed-base=""></td><td data-page-node-id="PhhjXOpztZsOjPdAig3ZpP" data-ed-base=""></td><td data-page-node-id="i6b9LMTcE1R6nv3K0DvDkv" data-ed-base=""></td><td data-page-node-id="imeyNEnCLKa8mEj1VMS9pC" data-ed-base=""></td><td data-page-node-id="HqMFGsEJgVWKzorjtYgfog" data-ed-base=""></td><td data-page-node-id="NDkV3bp4VaogjHemSBirA5" data-ed-base=""></td><td data-page-node-id="rUS1mqyNsrR0BznRQg9t74" data-ed-base=""></td></tr>
+              <tr data-page-node-id="haxCifyFMTEVY8JUfafQQl"><td data-page-node-id="lRXamqA6FgLuS3KTMyRzTo" data-ed-base=""></td><td data-page-node-id="2wwixm2OvzvrGeIaHKHmLL" data-ed-base=""></td><td data-page-node-id="0T3iyC5JJhG858lIunLMGe" data-ed-base=""></td><td data-page-node-id="GPhLJx1H6wk9Y6DKM1b8qb" data-ed-base=""></td><td data-page-node-id="q2bUpi6YohTlRRch4tsGa6" data-ed-base=""></td><td data-page-node-id="WWFLsCGh6jDJCBJTllvikv" data-ed-base=""></td><td data-page-node-id="HJbe9YodIAYmx2EYfZ7kgj" data-ed-base=""></td><td data-page-node-id="iXVMYzGHeLXxo2UYx7MwpB" data-ed-base=""></td><td data-page-node-id="6aIO3tMUJB0aMqC9zeLuVi" data-ed-base=""></td><td data-page-node-id="lqYNGORZAYZSmlnbCp52rU" data-ed-base=""></td><td data-page-node-id="xwF41OSznHPcP1vsHuvNza" data-ed-base=""></td><td data-page-node-id="0tqQeYHi2qwfyqPSbFMdCr" data-ed-base=""></td></tr>
+              <tr data-page-node-id="nswtaGD0RqR7E8CHWirCTo"><td data-page-node-id="J2akqLsdHAaf1tDD2tPQtU" data-ed-base=""></td><td data-page-node-id="R4HP3ajuvDqniDdTYoDe8a" data-ed-base=""></td><td data-page-node-id="f61XiZqQyB4llISfbVOnF7" data-ed-base=""></td><td data-page-node-id="JBy6CwhQutNmkXah4aTHlD" data-ed-base=""></td><td data-page-node-id="AK8ekRpvlBrplnpLwbGKFv" data-ed-base=""></td><td data-page-node-id="EMbm7YjA0HGPcD73rSIUCC" data-ed-base=""></td><td data-page-node-id="Oek6ySJwGGv1Vola14paTO" data-ed-base=""></td><td data-page-node-id="IU2F0utBRRaG4bg7jlZlGB" data-ed-base=""></td><td data-page-node-id="DeqIZFJ5TIRzRLYBKwkllG" data-ed-base=""></td><td data-page-node-id="5upO4zaCvBTAhZW4SaJjaF" data-ed-base=""></td><td data-page-node-id="JJ0LThALSJaAGvgh7bE3Xy" data-ed-base=""></td><td data-page-node-id="iFkrCWhU0GSbwLmwCN68oi" data-ed-base=""></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pg" data-page-node-id="ZNIBmZIYdNlhpivwAmMG99">
+          <div class="p" data-page-node-id="AiFJRqcLrQbYb9RC1e2mzV" data-ed-base="上一项">上一项</div><div class="p" data-page-node-id="u3vUCR4IjnnHWkbrb6Cv1Z" data-ed-base="1">1</div><div class="p on" data-page-node-id="cpsHOclYYyeiuvimVyQ1LO" data-ed-base="2">2</div><div class="p" data-page-node-id="zzbT8JLKVkF65vNlYTR1a7" data-ed-base="3">3</div><div class="p" data-page-node-id="EfQVfMiDKLxi3GQcN1gdB8" data-ed-base="下一项">下一项</div>
+        </div>
+        <div class="ft" data-page-node-id="FZZFKr7NXsN6ViHhEGJXqs" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+      </div>
+
+      <div class="side" data-page-node-id="jjct77LTZgPuyte7qcN7Fv">
+        <div class="note" data-page-node-id="xdGDEMgKi6g3HoPo3DcmYa">
+          <b data-page-node-id="93H0QCS7ETUEJBcBolSJiK" data-ed-base="1.">1.</b>申请日期默认当天；<br data-page-node-id="1v8SwClsUPg7BAjY3UcHjJ" data-ed-base="">
+          <b data-page-node-id="DH7FcZ98Geyqf1xuAYD92y" data-ed-base="2.">2.</b>组合查询下拉支持：门诊号/住院号、检查ID、申请单号、姓名。默认门诊/住院号。进入该界面时，光标默认在组合查询；<br data-page-node-id="H3RD5wqDgcep07bQNcX2xC" data-ed-base="">
+          <b data-page-node-id="nQkTWk3cGguu6gjf9aTDTR" data-ed-base="3.">3.</b>如果第三方系统跳转到本系统时：<br data-page-node-id="5jgKLL0oANeyVooxwM70Au" data-ed-base="">
+          （1）如果患者有申请单，自动查询该患者的申请单，弹窗【申请列表】提示。点击编辑转入对应申请单界面。点击新增则调用新增按钮；<br data-page-node-id="5uEFwuYUTCMNh6Qt8Jx8Dm" data-ed-base="">
+          （2）如果患者没有申请单，则自动停留在病理申请列表页面；
+        </div>
+        <div class="panel" data-page-node-id="Be4wWXy3sXi7TvVUQGFLuV">
+          <div class="p-t" data-page-node-id="nAab0GZY94vhc6VYmov5oF" data-ed-base="申请列表">申请列表</div>
+          <div class="p-info" data-page-node-id="D1ydtWdhGjg3aEEAMI92Fi">
+            <span data-page-node-id="CDq23RPYVP4D6cG7dmUaF3" data-ed-base="姓名：张三">姓名：张三</span><span data-page-node-id="tnXmLQWegUiRRHY2FIIkIE" data-ed-base="性别：女">性别：女</span>
+            <span data-page-node-id="xytJZ7l1EzpHODTjYxyUlE" data-ed-base="患者来源：门诊">患者来源：门诊</span><span data-page-node-id="b8hWiMoXCoiegOo6P3oZ01" data-ed-base="门诊/住院号：066899">门诊/住院号：066899</span>
+            <span class="full" data-page-node-id="4c2eO5cnKUom8eDokv4heH" data-ed-base="检查ID：20260305223">检查ID：20260305223</span>
+          </div>
+          <div class="p-tbl" data-page-node-id="itWKZzuwWBZ76bOyk0GgkE">
+            <table data-page-node-id="ZdussBgp74FhSEWohSM6y5">
+              <colgroup data-page-node-id="cUwVti6pbKxrkEUrxH0Vz0"><col style="width:44px" data-page-node-id="6SNX9y0qppCCpLZUHL6QG9" data-ed-base=""><col data-page-node-id="ugirfrTdHxMa9FqPvhl8DA" data-ed-base=""><col data-page-node-id="rBLwAXi5zm7MEIVhx5pkea" data-ed-base=""><col data-page-node-id="InyDaBHdFFWRHXBFCFREv1" data-ed-base=""></colgroup>
+              <thead data-page-node-id="aqmyvve1zVGw10PXWu6Cio"><tr data-page-node-id="a8CKl14hYD3R6WPGZwVxev"><th data-page-node-id="VXNMT1XYD9txhCTnlmGGcQ" data-ed-base="序">序</th><th data-page-node-id="CfKrxFECaeXw1XxJI7iIey" data-ed-base="医嘱项目">医嘱项目</th><th data-page-node-id="LTt2MGx5auXk5Mhpv839nd" data-ed-base="申请科室">申请科室</th><th data-page-node-id="BBGc876PmzlX6CLlR5CGD6" data-ed-base="申请医生">申请医生</th></tr></thead>
+              <tbody data-page-node-id="CHjxnwbJ3sXLSAgJer3N0W">
+                <tr data-page-node-id="SmGpElAD5Lu3viUEn4r96g"><td data-page-node-id="kzm9gGumSxB9AZQ6RodRmu" data-ed-base="1">1</td><td data-page-node-id="BNqHibA7UmRVnS0aJiQZDm" data-ed-base=""></td><td data-page-node-id="nzlJQksdtArLzYpQKurUGW" data-ed-base=""></td><td data-page-node-id="KQGG6wqq0s5KFpwueJmurk" data-ed-base=""></td></tr>
+                <tr data-page-node-id="q5uIJBZq5GarY4SdRj4een"><td data-page-node-id="uPDGcsAxAuezAAGOzbsSvP" data-ed-base="2">2</td><td data-page-node-id="BUMgVzFZEek1kOEewzPpAp" data-ed-base=""></td><td data-page-node-id="2U74idebU0Awv38SvjMrWu" data-ed-base=""></td><td data-page-node-id="PyXE8f3XDGqasFRiH4oAGK" data-ed-base=""></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="note" data-page-node-id="dqbHX0qfbwI8bFPqVQkjPY">
+          <b data-page-node-id="UQEwhU0AFBBotJQaIErFpa" data-ed-base="病理申请单弹窗说明：">病理申请单弹窗说明：</b><br data-page-node-id="I4lR2Um31b9hjy1ULKFUEL" data-ed-base="">
+          1.大部分信息读取第三方传入，传入的信息不可修改；如果第三方未传入就不显示，用户可手动填写<br data-page-node-id="nzNG4SOvwAQmDgHenneBxo" data-ed-base=""><br data-page-node-id="7Wvh7NhU7MQS6rAZZtzGxP" data-ed-base="">
+          <b data-page-node-id="VBS4SAoOyB5xBtkTnSai4w" data-ed-base="标本状态处于离体后：">标本状态处于离体后：</b><br data-page-node-id="82Wzxs5dQyXwT56tcRw4Qb" data-ed-base="">
+          1.不可删除，点击删除时提示【当前标本已{对应状态}，不可删除】<br data-page-node-id="hkqzBos1ouZWrT9JZxsi3s" data-ed-base="">
+          2.仅能修改标本名称、标本部位、固定液，其他控件置灰，不可编辑；
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 条码打印 ============ -->
+  <div class="pg-sec" id="pgCodePrint" data-page-node-id="zDLoyFGjieMwrCDupD3GoQ">
+    <div class="page" data-page-node-id="yFHXHliY9HszlWBIT1ni3t">
+      <div class="crumb" data-page-node-id="KiEMt4yZPqecDeuPLzIlAs">当前位置：标本管理 / <b data-page-node-id="pyfLml8IbciaH8UMspNudZ" data-ed-base="条码打印">条码打印</b></div>
+      <div class="qbar" data-page-node-id="CJ3uyCS4ojNZD46tVtCFzc">
+        <select class="kw" data-page-node-id="HtmcxtGbs3kE6QQ9I4EAX8"><option data-page-node-id="rpMvWuv9pEZWQPFi5fuHDK" data-ed-base="申请时间">申请时间</option></select>
+        <input class="date" value="2022-02-02 至 2022-02-03" data-page-node-id="LNqEqFW0tnj0Kmj2omI5um" data-ed-base="">
+        <span class="lb" data-page-node-id="bTVAFPVs0Aecds6d3c0b9Y" data-ed-base="标本状态：">标本状态：</span>
+        <select class="kw" data-page-node-id="YzPEREqJ91DENxg1YKGYCm"><option data-page-node-id="U1Zvh20QiQRMvZfj4rZayI" data-ed-base="已申请">已申请</option><option data-page-node-id="PjutZcgFqxiHkOJ0nzny2o" data-ed-base="已离体">已离体</option><option data-page-node-id="aKgouTuKBBnLzEkXFuzihv" data-ed-base="已固定">已固定</option></select>
+        <span class="lb" data-page-node-id="rmapLDqPt68egIDHOomGZl" data-ed-base="患者姓名：">患者姓名：</span>
+        <select class="kw" data-page-node-id="Krzbk4bUl1AmbKfXpX9uFu"><option data-page-node-id="iVAoTwWFJGGwjCNFTAKQqW" data-ed-base="患者姓名">患者姓名</option><option data-page-node-id="ken3yAlduB0ifABgqeASAP" data-ed-base="申请医生">申请医生</option><option data-page-node-id="VUAFcAJz1Iz4ZwTj7SlzMs" data-ed-base="门诊号">门诊号</option><option data-page-node-id="ncHoLjtS39MWBPIUQW6VDw" data-ed-base="住院号">住院号</option></select>
+        <input class="kw" data-page-node-id="uGVHX9SFDsTIRxkRPLENV7" data-ed-base="">
+        <span class="lb" data-page-node-id="3PZ8YBv6PzxGmofs5vZkwY" data-ed-base="申请科室：">申请科室：</span>
+        <input class="kw" data-page-node-id="xm0Li43itNll8PvgP2GTsC" data-ed-base="">
+        <div class="btn" data-page-node-id="CrJosjKJcVImqetoaIOcIn"><button class="btn-q" onclick="doQuery()" data-page-node-id="TSOcAC5vuWnRPJ1XLqypH7" data-ed-base="查 询">查 询</button><button class="btn-n" onclick="toast('条码打印任务已发送')" data-page-node-id="xeEefzQ74hWZ5jLRqQ9Rpk" data-ed-base="打 印">打 印</button></div>
+      </div>
+      <div class="tbl" data-page-node-id="GyUrj50Sp9PJJ3mrN6dJxt">
+        <table data-page-node-id="miToeiCT8nDyakB4eqPWpA">
+          <colgroup data-page-node-id="wAYEYvOrLTnitnir7YHArc"><col style="width:40px" data-page-node-id="KlVxhRqKsdzvc1FXXFMad6" data-ed-base=""><col style="width:50px" data-page-node-id="rcgOUEK6fuo7NfknsU7awB" data-ed-base=""><col style="width:90px" data-page-node-id="yfWgfUAVDrWxTQgInTKWfz" data-ed-base=""><col style="width:110px" data-page-node-id="eol3YxPPSEzAEQzxsoXWfo" data-ed-base=""><col style="width:100px" data-page-node-id="9WEU9ZVVKlAdrZug0w32SL" data-ed-base=""><col style="width:100px" data-page-node-id="XD9g8PglP4W7uRZk4WKXLE" data-ed-base=""><col style="width:80px" data-page-node-id="Lrj2OxDMCNycOurrUQqzeQ" data-ed-base=""><col style="width:60px" data-page-node-id="rd5ycOmWcwfpyGyUOMdebN" data-ed-base=""><col style="width:60px" data-page-node-id="XUmY4h97Cl4PJxYAvp7Kn5" data-ed-base=""><col style="width:100px" data-page-node-id="IOp8jdfq7cG5vEYBibjg7G" data-ed-base=""><col style="width:120px" data-page-node-id="xoZOEY2zNnAnG81x3AqQPg" data-ed-base=""><col style="width:110px" data-page-node-id="TqSPxjWLP7YtcwQ4y4xEUI" data-ed-base=""><col style="width:70px" data-page-node-id="fkd53j8ItT1xqVF5Dboqdl" data-ed-base=""><col data-page-node-id="fyocCtdao5U7iDnl5slpFD" data-ed-base=""></colgroup>
+          <thead data-page-node-id="EwpX11fXeGVflLsCAJLVrm"><tr data-page-node-id="bkg6UBWzVylUC9TzHFpDp3">
+            <th data-page-node-id="CLMwODbrDNnIHYqCv6MuWK"><input type="checkbox" class="chk" data-page-node-id="zhiHzSbDjoCBARFELznmAP" data-ed-base=""></th><th data-page-node-id="ktAqomqrImRmciWEHfBlAL" data-ed-base="序号">序号</th><th data-page-node-id="0KQoeLyvBmCur7WafK7Hqd" data-ed-base="标本状态">标本状态</th><th data-page-node-id="DPgD1ks0F6AD1BUhvhLHly" data-ed-base="条码号">条码号</th><th data-page-node-id="bNSDYlYTDwSO84IIRMPwgI" data-ed-base="标本名称">标本名称</th><th data-page-node-id="5hS1AfmwOVG4XxshQXSJ8o" data-ed-base="标本部位">标本部位</th><th data-page-node-id="e2GRhUhIfQB97r6ErPCbi8" data-ed-base="患者姓名">患者姓名</th><th data-page-node-id="qFnm53SGntVikGIH3i1jYP" data-ed-base="年龄">年龄</th><th data-page-node-id="N3vhBeWDJoe0D3qYsUAvTH" data-ed-base="性别">性别</th><th data-page-node-id="ILSjW42gUuVakNoAnCiz2v" data-ed-base="检查ID">检查ID</th><th data-page-node-id="UDNq8F86hkspY7atxIW8jZ" data-ed-base="申请单号">申请单号</th><th data-page-node-id="rSyL2YkI3g5sKMaMylMZZl" data-ed-base="门诊/住院号">门诊/住院号</th><th data-page-node-id="519D1MHgK0xKKX2IMcNwrN" data-ed-base="来源">来源</th><th data-page-node-id="IHwL6RxpV8QXFZrR0TRDla" data-ed-base="操作">操作</th>
+          </tr></thead>
+          <tbody data-page-node-id="aMSJqxN2q4pUEvxcKAYnHY">
+            <tr data-page-node-id="sWRRLUOGiUy2LFQaWGbgKP"><td data-page-node-id="rukMiXWa1LilRC9lHZ4cFQ"><input type="checkbox" class="chk" data-page-node-id="E50pJ5ybBkpdUU5JvH2r1Q" data-ed-base=""></td><td data-page-node-id="KyU3YeJgym6cBkHJ2A0n41" data-ed-base="1">1</td><td data-page-node-id="GhXgg4dLaUyv2jongUNEX0" data-ed-base="已申请">已申请</td><td data-page-node-id="VR5GbbwgquoiS1wIy2l2Rk" data-ed-base="230005121">230005121</td><td data-page-node-id="bT6lmVnHwiIGdw4fvG8QmF" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="nmDA193nS6Ou1lCtGOctJF" data-ed-base="胃体">胃体</td><td data-page-node-id="3tM2mEjF0vScjwMjicvJTG" data-ed-base="张小花">张小花</td><td data-page-node-id="Kr5CjaBzubtryJYV4otCGt" data-ed-base="32">32</td><td data-page-node-id="Eyota3DnyGOk4TXVCFH5c0" data-ed-base="女">女</td><td data-page-node-id="nLwWo7C788SgIjfGAoAahU" data-ed-base="2160001">2160001</td><td data-page-node-id="llV081u0uDru7wFkqDe3hc" data-ed-base="2520000315">2520000315</td><td data-page-node-id="XdeRM2en6ySDSLBNyYNHkd" data-ed-base="066123">066123</td><td data-page-node-id="WjvYHicbqBnJSNEajT28xX" data-ed-base="门诊">门诊</td><td class="op" data-page-node-id="3HS311Ka1sKL8AqEapLTbR"><a onclick="openSpec()" data-page-node-id="Cn0dRCBoIXh83HEKT8ZVkA" data-ed-base="查看">查看</a></td></tr>
+            <tr data-page-node-id="QsaD1TByoLYgh05PmUBlrH"><td data-page-node-id="MePGLTZw2D4U5kuq9wyDIu"><input type="checkbox" class="chk" data-page-node-id="P1UX2qNDVHsYtRWBwWAd72" data-ed-base=""></td><td data-page-node-id="pDwsDDaZZOB5Sn4XwnCcJ7" data-ed-base="2">2</td><td data-page-node-id="fz3dpt1LV2aglY8oeTRxVq" data-ed-base="已采集">已采集</td><td data-page-node-id="DQPJenMh8ePqWgijw009QE" data-ed-base="230005122">230005122</td><td data-page-node-id="HF66tLRhjao8vyefGRLqKv" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="elD5o65IdGcTCJai37Leaw" data-ed-base="胃窦">胃窦</td><td data-page-node-id="nrFYlJBoI2tDaHGhhJwRgb" data-ed-base="李小花">李小花</td><td data-page-node-id="BAU3rpjzWQH0v1AGarG9vQ" data-ed-base="32">32</td><td data-page-node-id="m2h2fYAJTRDpUAAYwKW8M8" data-ed-base="女">女</td><td data-page-node-id="0LOOkJiOqu5Zt2nFwvGe7S" data-ed-base="2160002">2160002</td><td data-page-node-id="NGAl4HzwiKaWNJm25t469G" data-ed-base="2520000316">2520000316</td><td data-page-node-id="pHxQKJQrSMkp6xxwidQoBA" data-ed-base="066124">066124</td><td data-page-node-id="dnR8r0c5XTEfhbUynTzZ9s" data-ed-base="住院">住院</td><td class="op" data-page-node-id="BjayeR0cRA4QHDNKMywvBI"><a onclick="openSpec()" data-page-node-id="aVzBDScpFYkpd8JnHU9We0" data-ed-base="查看">查看</a></td></tr>
+            <tr data-page-node-id="TfLrgLHOIXK5M9mB1QBuoq"><td data-page-node-id="qyqAPe3HeqHHWgXqLSzOa8"><input type="checkbox" class="chk" data-page-node-id="5hixJCNk01xvLnJTLrSkhv" data-ed-base=""></td><td data-page-node-id="8WqyT55L00rmYHFIGAvZhk" data-ed-base="3">3</td><td data-page-node-id="OktQstsKM9IFDVk8D6xrNF" data-ed-base="已接收">已接收</td><td data-page-node-id="3AXF7r1EOMXQb8s8Yd4opV" data-ed-base="230005123">230005123</td><td data-page-node-id="DJQrlw4ARvCrZYNDvyGFxB" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="ZkEgiWGYv5EJCxv4f1U5PN" data-ed-base="胃底">胃底</td><td data-page-node-id="7EsjhQBoCyUYVMZ4Z4hYER" data-ed-base="吴小华">吴小华</td><td data-page-node-id="H4zXSgGNwhrCwq8lqVvk99" data-ed-base="33">33</td><td data-page-node-id="M7sXjnE48WmHNTbAnRohmX" data-ed-base="男">男</td><td data-page-node-id="LJV2Qxdg7j48m5PlRjf2Cj" data-ed-base="2160003">2160003</td><td data-page-node-id="WAODOCMPPw0lZNfNFnlAGk" data-ed-base="2520000317">2520000317</td><td data-page-node-id="hYEt7TrujOBEYDt28cKsui" data-ed-base="066125">066125</td><td data-page-node-id="ofRRHqxahfEsgz2DivaBeD" data-ed-base="住院">住院</td><td class="op" data-page-node-id="7UVwSqWOc5Ymtj28mYLbz0"><a onclick="openSpec()" data-page-node-id="1ed0sET1x2Z00Cb0LkHh7k" data-ed-base="查看">查看</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pg" data-page-node-id="g4e8IEiH6fL2Zbn8qQLrQk">
+        <div class="p" data-page-node-id="HCIBXPCJDGk4brAL7zlenj" data-ed-base="上一项">上一项</div><div class="p" data-page-node-id="HfmEZ8HMZ4GFuZGB4XnklA" data-ed-base="1">1</div><div class="p on" data-page-node-id="vdsfZURDGpm0c9qt7S2tOh" data-ed-base="2">2</div><div class="p" data-page-node-id="Kr7wdjmzlpLsnbusOoV1Oo" data-ed-base="3">3</div><div class="p" data-page-node-id="nVIMqgHuiAGhuZ976K24C8" data-ed-base="下一项">下一项</div>
+      </div>
+      <div class="note" data-page-node-id="DdJ5ssugWgNEbBpK1t7lQ2" data-ed-base="1.查看提交的病理申请单；">1.查看提交的病理申请单；</div>
+      <div class="ft" data-page-node-id="75YmKbZVmvO68fNILHhyMn" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+  <!-- ============ 标本采集（离体、固定） ============ -->
+  <div class="pg-sec" id="pgCollect" data-page-node-id="0iwbBLUQ5pTbu3aUqOEN3j">
+    <div class="page" data-page-node-id="mpt1Ww50nTyEFB8uJ3gR7A">
+      <div class="crumb" data-page-node-id="zJudDpIhlhBM4z3FH9wlT5">当前位置：标本管理 / <b data-page-node-id="soFyuKdzRkk9DPqm1zYfGY" data-ed-base="标本采集（离体、固定）">标本采集（离体、固定）</b></div>
+      <div class="collect-wrap" data-page-node-id="xfK5f4b7XTMJ3f8auGwOI6">
+        <!-- 左侧：扫码确认 -->
+        <div class="collect-left" data-page-node-id="fnd7dLecvoCPAGq9A4GFBn">
+          <div class="sec-h" style="padding-left:0" data-page-node-id="lcCr2bK0aLXkGJDCjbAD6S"><span class="bar" data-page-node-id="62q3j5bOqNoXnNqRlCBohF" data-ed-base=""></span>扫码确认</div>
+          <div class="frow-line" data-page-node-id="GmFJQ11ZJH5HksPF2n08re"><label data-page-node-id="DoFwD7pydgsBIbtIGWxa4v" data-ed-base="条码编号：">条码编号：</label><input placeholder="扫描/输入条码号" style="flex:1" data-page-node-id="fCiQWoIkBdn7cg9cDdbPuM" data-ed-base=""></div>
+          <div class="frow-line" data-page-node-id="J4TgFVBecsn6WASxGKrLqF"><label data-page-node-id="bic698nzwujyoiZBeEyqcs" data-ed-base="标本名称：">标本名称：</label><input placeholder="" style="flex:1" disabled="" data-page-node-id="ItKPQmaJp8TrdWoaWUVohJ" data-ed-base=""></div>
+          <div class="frow-line" data-page-node-id="jtImoBFs15JrMhXaqFucvN"><label data-page-node-id="XSGiUThtlaMudpEvGDEL72" data-ed-base="标本编号：">标本编号：</label><input placeholder="" style="flex:1" disabled="" data-page-node-id="tMagsnJCSUFBrxAeURRRkA" data-ed-base=""></div>
+          <div class="frow-line" data-page-node-id="oLFgaCjZQG0OWqFkYXCy7S"><label data-page-node-id="UbhQfeRrNU61gCsNb1Y634" data-ed-base="送检数量：">送检数量：</label><input placeholder="" style="flex:1" disabled="" data-page-node-id="TwVFQPI0boBbtgqjBtUHr9" data-ed-base=""></div>
+          <div style="display:flex;justify-content:center;gap:12px;margin-top:18px" data-page-node-id="0HsS4gajIXDhEi9Kwkjzds">
+            <button class="btn-q" style="min-width:88px" onclick="toast('已确认离体')" data-page-node-id="SAASUFMt8FUDBXjIxaF2Dk" data-ed-base="离体确认">离体确认</button>
+            <button class="btn-n" style="min-width:88px" onclick="toast('已确认固定')" data-page-node-id="dxxvOhrtXIDCza7wMVFDWn" data-ed-base="固定确认">固定确认</button>
+          </div>
+        </div>
+        <!-- 右侧：已采集列表 -->
+        <div class="collect-right" data-page-node-id="MT1OBBUVJIKueRY9YTp6dE">
+          <div class="sec-h" style="padding-left:0" data-page-node-id="7x94cojnw7Tx79dCvAQ7Hp"><span class="bar" data-page-node-id="Ls1YUU2ARVdW2If8DkIFIp" data-ed-base=""></span>已采集标本
+            <span style="font-size:13px;font-weight:400;color:#606266;margin-left:14px" data-page-node-id="Mx0lzhfxUR0ZESGtNeevOR">标本数：<span class="stat-num" data-page-node-id="CMTvNAfJjLRweFEuRHT5Pt" data-ed-base="0">0</span></span>
+          </div>
+          <div class="tbl" style="margin:6px 0 0" data-page-node-id="6Mu6JTaXJepvsgmplTHIkt">
+            <table data-page-node-id="su8D8DzjqsSmujEmaEtRZw">
+              <colgroup data-page-node-id="PdJYLKIrBxarzb3LgcBvlF"><col style="width:50px" data-page-node-id="NFFFQZfoD8Smn5SFlWEOtz" data-ed-base=""><col style="width:120px" data-page-node-id="hwVlZ9epYeqaEqO5WDaZGQ" data-ed-base=""><col data-page-node-id="zLtpEf8EPD9MjLln74wRJy" data-ed-base=""><col style="width:150px" data-page-node-id="i6gExR3a2xj8dgWkZ36tYg" data-ed-base=""><col style="width:110px" data-page-node-id="m2RDIzqaQgCdzUmU47uFG8" data-ed-base=""></colgroup>
+              <thead data-page-node-id="mCkzFfqLMdy9W43lA1YWTN"><tr data-page-node-id="0hxyYZ80PPdand4w9iKjMp"><th data-page-node-id="75lTDBYqxjXti1zTwjRyMi" data-ed-base="序号">序号</th><th data-page-node-id="lXk0Cbkf2iFEvAcBL5R9kY" data-ed-base="条码编号">条码编号</th><th data-page-node-id="YTf0jDUHzoEQIv7iKjNg0h" data-ed-base="标本名称">标本名称</th><th data-page-node-id="glxic8LPa3aPdfsUQVDNBQ" data-ed-base="采集时间">采集时间</th><th data-page-node-id="ZBGyb4gmmxV9qEreZVxmdl" data-ed-base="操作">操作</th></tr></thead>
+              <tbody data-page-node-id="oAi3fTKrpuFF4ky0YSNozr">
+                <tr data-page-node-id="kXkUMMrG2S7XafcjV3pZxU"><td data-page-node-id="O1L7XSvXJ1wNoUszPFtXE5" data-ed-base=""></td><td data-page-node-id="Hit8ejxLTWxGgP2nGpFWoD" data-ed-base=""></td><td data-page-node-id="6gD3CU2heRQAqGNqkqHBVj" data-ed-base=""></td><td data-page-node-id="eKBjt7GHlEw3cPgrTT3Eg9" data-ed-base=""></td><td class="op" data-page-node-id="rNB4881CYLI1vmHWr1aybz"><a data-page-node-id="IYatFRretf9AtdzgxSORzw" data-ed-base="标本追溯">标本追溯</a></td></tr>
+                <tr data-page-node-id="pasKxjcdlK2QtFfTGcEgeZ"><td data-page-node-id="qZMsgjicSiZksMPP1vC0MZ" data-ed-base=""></td><td data-page-node-id="mt1Vk3CCM9ruxjBKfmopss" data-ed-base=""></td><td data-page-node-id="BlXoVeCKT7rHvmEP1hzvfi" data-ed-base=""></td><td data-page-node-id="BKn2rKNTDoZgcHv5ahu8VN" data-ed-base=""></td><td data-page-node-id="BBn9HfwWLrbdCSQuL357h2" data-ed-base=""></td></tr>
+                <tr data-page-node-id="CBDC9LS3kSTvVUJf5lv40K"><td data-page-node-id="CPfDThaUrbbhh19siGkCau" data-ed-base=""></td><td data-page-node-id="svxyrxlYuSsWyIm1B6jA21" data-ed-base=""></td><td data-page-node-id="bA1wmlOZxxJ4VgVZHiJowu" data-ed-base=""></td><td data-page-node-id="528T81nGAEKYrQBltlACm9" data-ed-base=""></td><td data-page-node-id="7JndysLvRZTPEVQWvLryg5" data-ed-base=""></td></tr>
+                <tr data-page-node-id="8LN5yEo4khc8qSm002wiYa"><td data-page-node-id="UDSDnnGkNaBp8DuQ0ZSFz6" data-ed-base=""></td><td data-page-node-id="HxSXdaE4w6rC2jIsdAWNIQ" data-ed-base=""></td><td data-page-node-id="IfREuMYFuzHb9gfEeM7vtH" data-ed-base=""></td><td data-page-node-id="mRTJ5QG2pDw9qmbeSGBOUQ" data-ed-base=""></td><td data-page-node-id="o6TIP8SDbW3lb0CBdoOERN" data-ed-base=""></td></tr>
+                <tr data-page-node-id="xESGk9v1eF80F11vOuKMWS"><td data-page-node-id="G9MoJm67ITgbIUtcYVp8Ic" data-ed-base=""></td><td data-page-node-id="uftiyahGWqt46YwU3Z65rU" data-ed-base=""></td><td data-page-node-id="MltMnO01HZvqMPvV57YRAP" data-ed-base=""></td><td data-page-node-id="PUKff29cP0HLJhaTbMuaeH" data-ed-base=""></td><td data-page-node-id="sHQzmMw2WNxuoIFkpBHBOI" data-ed-base=""></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="note" data-page-node-id="Ls5EjY7AYHiYMderGf0bDx" data-ed-base="这里最多加个列表，保留原来的扫码功能；">这里最多加个列表，保留原来的扫码功能；</div>
+      <div class="ft" data-page-node-id="5Sj1VCiJ287Wjfv3m98ROQ" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+  <!-- ============ 标本打包 ============ -->
+  <div class="pg-sec" id="pgPack" data-page-node-id="GEtuVk0pZT5BJTWDnsM520">
+    <div class="page" data-page-node-id="asZccLLOkXO5C2f2qaukfj">
+      <div class="crumb" data-page-node-id="QLBrTbuNnr1gw02yPh9hmH">当前位置：标本管理 / <b data-page-node-id="x7SXmmZDe5MTShs1cQbazi" data-ed-base="标本打包">标本打包</b></div>
+      <!-- 未打包 / 已打包 页签 -->
+      <div style="display:flex;gap:34px;padding:12px 16px 0;border-bottom:1px solid #e8eaee;font-size:14px" data-page-node-id="hF7iO6HOOUc1JACS5HAqGd">
+        <span id="pkTabUn" onclick="pkTab('un')" style="cursor:pointer;padding:8px 2px;color:#1e9fff;font-weight:700;border-bottom:2px solid #1e9fff" data-page-node-id="5wRWg0e9HiJ1tuKE03a6JY" data-ed-base="未打包">未打包</span>
+        <span id="pkTabEd" onclick="pkTab('ed')" style="cursor:pointer;padding:8px 2px;color:#606266" data-page-node-id="hNEQlh5y1NWlxAMB3j6sKe" data-ed-base="已打包">已打包</span>
+      </div>
+      <!-- 查询栏 -->
+      <div class="qbar" data-page-node-id="qZyENbmAvYqqd87On1H4fg">
+        <select class="kw" data-page-node-id="7GDxR1a4QBxigBElbcsFUd"><option data-page-node-id="mdyk1lIhXtA24c5jtBL7Hm" data-ed-base="申请时间">申请时间</option><option data-page-node-id="EZRSpDVmtLqvheF42hlkr3" data-ed-base="离体时间">离体时间</option><option data-page-node-id="wieEAFLMcUYDlFIeUO542a" data-ed-base="固定时间">固定时间</option><option data-page-node-id="p2z64w3bfh9PVHkGBOUWh5" data-ed-base="送检时间">送检时间</option><option data-page-node-id="zgBQX9ufMJvOwmCjsF8Xtm" data-ed-base="接收时间">接收时间</option></select>
+        <input class="date" value="2022-02-02 至 2022-02-03" data-page-node-id="UJGcpppDDiYnhtW3AN9n4d" data-ed-base="">
+        <span class="lb" data-page-node-id="zJ2NSOK34Jv2dqBBEidLeU" data-ed-base="患者姓名：">患者姓名：</span>
+        <select class="kw" data-page-node-id="62AhwtP9o17rSqBJAJHMub"><option data-page-node-id="vAWMSo2giyv9CNcM08kSFO" data-ed-base="患者姓名">患者姓名</option><option data-page-node-id="zERmB7kZg8ZThXI23NKAlS" data-ed-base="申请医生">申请医生</option><option data-page-node-id="bgOGC0vXRNR1REEvzAh0PP" data-ed-base="门诊号">门诊号</option><option data-page-node-id="S6AQHmV5ryJNQ9VX3ms90t" data-ed-base="住院号">住院号</option></select>
+        <input class="kw" data-page-node-id="zmLsTZS9MzJnhXClhWPp09" data-ed-base="">
+        <span class="lb" data-page-node-id="iC0Fl1Od9o0Yt1XSgDwSmx" data-ed-base="申请科室：">申请科室：</span>
+        <select class="kw" data-page-node-id="aFsB2fNBZUFbEpuYKPdtcX"><option data-page-node-id="fccOI7ilF04gqA6FtAabL2" data-ed-base=""></option><option data-page-node-id="2PAjvM7NmkViKRfBN4wyRb" data-ed-base="内镜室">内镜室</option><option data-page-node-id="E7nhj92vOpiWiMhaO0fFQh" data-ed-base="手术室">手术室</option></select>
+        <span class="lb" data-page-node-id="meEkDLYIwQ8f9W0pXhT4oG" data-ed-base="条码号：">条码号：</span>
+        <input class="kw" placeholder="输入/扫码" data-page-node-id="uhItMpRzEwf1shqgHBKyg5" data-ed-base="">
+        <div class="btn" id="pkBtnUn" data-page-node-id="b14kZ3jO2ElnFoqerc0pIr">
+          <button class="btn-q" onclick="doQuery()" data-page-node-id="tZ7CJlTAHvj9yqC6XbkBNL" data-ed-base="查 询">查 询</button>
+          <button class="btn-n" onclick="openPkAll()" data-page-node-id="Fd1YlP7CFAvfG27srWH84B" data-ed-base="一键打包">一键打包</button>
+          <button class="btn-n" onclick="openPkWrap()" data-page-node-id="1l8KVGmxxLAHekgXxcrb9G" data-ed-base="加入包裹">加入包裹</button>
+        </div>
+        <div class="btn" id="pkBtnEd" style="display:none" data-page-node-id="SkU1e7vnVRPBbE8aBmX2Y0">
+          <button class="btn-q" onclick="doQuery()" data-page-node-id="OvHQGIaczr1wcnHMe20mCO" data-ed-base="查 询">查 询</button>
+          <button class="btn-n" onclick="openPkOut()" data-page-node-id="jqmydKapu5D06Nn55D4H6g" data-ed-base="移出包裹">移出包裹</button>
+        </div>
+      </div>
+      <!-- 未打包列表 -->
+      <div id="pkUn" data-page-node-id="fNB8WGchc6Ln4WG2ALyvDE">
+        <div class="tbl" data-page-node-id="dq9A5GRDxzqImF39sgNGqW">
+          <table data-page-node-id="IxZFOpBOrcfU2hwRIzjInV">
+            <colgroup data-page-node-id="C3FvvJAuFcIV5TOwOX8MBq"><col style="width:40px" data-page-node-id="ko48DPBmoqOIBGsvh16MPp" data-ed-base=""><col style="width:50px" data-page-node-id="MftJlEpibixXCRktMpTlw6" data-ed-base=""><col style="width:90px" data-page-node-id="buJyQXRdveUl8odxmec82d" data-ed-base=""><col style="width:110px" data-page-node-id="1ME5EXaFT0gB0LRG56mEBK" data-ed-base=""><col style="width:90px" data-page-node-id="ZmZDnE6zvo77UFNP3kvKn9" data-ed-base=""><col style="width:90px" data-page-node-id="zkWjoBgwdaSVbf6CPNGfni" data-ed-base=""><col style="width:80px" data-page-node-id="u1Kaug4O6dtpqvwqEE6BDr" data-ed-base=""><col style="width:60px" data-page-node-id="LnnuHCLU5CSnupD7kXs053" data-ed-base=""><col style="width:60px" data-page-node-id="jQxmFlEoAgLG2O1j8K5ZJ7" data-ed-base=""><col style="width:120px" data-page-node-id="ort2AsHaqZ86B7n0DDI9eF" data-ed-base=""><col style="width:100px" data-page-node-id="bo2IqwPv6AQ7u1UPCYHKue" data-ed-base=""><col style="width:110px" data-page-node-id="vnbYzYcHKINazizPa13FSM" data-ed-base=""><col style="width:70px" data-page-node-id="Pxc9kJBed8AxTQRCRvCe6n" data-ed-base=""></colgroup>
+            <thead data-page-node-id="aR4J0VVCo2jqZRNZJbee6F"><tr data-page-node-id="GsDTXwLlnck2gVBImeFUBC"><th data-page-node-id="pqEeUdh5d1AQrjxSf5Fkn0"><input type="checkbox" class="chk" data-page-node-id="VpysCkpTvGpO8VljHbE6zj" data-ed-base=""></th><th data-page-node-id="LQKjJt06NWz4WpdwF0JoOw" data-ed-base="序号">序号</th><th data-page-node-id="85isSVwOqnyv2BgZpfc6Zy" data-ed-base="标本状态">标本状态</th><th data-page-node-id="tLZd2YyMHQSHpnCD3EkKtJ" data-ed-base="条码号">条码号</th><th data-page-node-id="kJQtWQHTAdW6gsiqHLglRP" data-ed-base="标本名称">标本名称</th><th data-page-node-id="dVlkPtgo0yQZIZ1DGeN6xa" data-ed-base="标本部位">标本部位</th><th data-page-node-id="siJDKsLZoBZIB01b8c2F9S" data-ed-base="标本数量">标本数量</th><th data-page-node-id="JpX0SvzwMiEE8A4vLJxVnu" data-ed-base="患者姓名">患者姓名</th><th data-page-node-id="S8EwGYulpLZ7sADy9TO7kU" data-ed-base="年龄">年龄</th><th data-page-node-id="TCIrD70yKmCqAPDYjbccpR" data-ed-base="性别">性别</th><th data-page-node-id="oZSTjNjOYhiNBHJF2XKX8A" data-ed-base="申请单号">申请单号</th><th data-page-node-id="GC0587RAXpBnmpuJvXCQOq" data-ed-base="检查ID">检查ID</th><th data-page-node-id="ssOV7X9WZCAB8GOmjBHGSu" data-ed-base="门诊/住院号">门诊/住院号</th><th data-page-node-id="zvz4kcD4ZOacw85CkJnZqP" data-ed-base="来源">来源</th></tr></thead>
+            <tbody data-page-node-id="kkeJxPkKLeG9GMAT88NtKg">
+              <tr data-page-node-id="H2S9pFWmkiEFd8rjYd2nZJ"><td data-page-node-id="AyKxLwoxH67Z5ZyICKvkEE"><input type="checkbox" class="chk" data-page-node-id="IRB2pb4MDfJjelQP1rjN6b" data-ed-base=""></td><td data-page-node-id="W6w3yD4Gj1I4UQZhETMRvg" data-ed-base="1">1</td><td data-page-node-id="9D46xNzFu1NoE1XerDkYm8" data-ed-base="已申请">已申请</td><td data-page-node-id="0J3hIZ4VOg2z0q7cBqZagL" data-ed-base="230005121">230005121</td><td data-page-node-id="cDDAnHz0SGVEjxMwbfosTj" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="5GAFlXIAuJH0AkLRSkTJ4L" data-ed-base="胃体">胃体</td><td data-page-node-id="S9xje1PgMTRERiYSQSmCb1" data-ed-base="2块">2块</td><td data-page-node-id="NcdvguZ2YhLXzacMhi6mRU" data-ed-base="张小花">张小花</td><td data-page-node-id="qaHT816eFXW7ekCYOCX60g" data-ed-base="32">32</td><td data-page-node-id="Bu5SQw8qw1e2wu3LDBY5WY" data-ed-base="女">女</td><td data-page-node-id="wYMnOQawycHleG2n4zxWWa" data-ed-base="2520000315">2520000315</td><td data-page-node-id="PzyhTVy966085DvypmBu8p" data-ed-base="2160001">2160001</td><td data-page-node-id="Wel8iXDGAEI6ewdjDk4WSD" data-ed-base="066123">066123</td><td data-page-node-id="Mnmc5mJmQ69ia09XmHUGpX" data-ed-base="门诊">门诊</td></tr>
+              <tr data-page-node-id="nB5FDtBl4KvFbk16K8xXZK"><td data-page-node-id="uM7hQDHB1CsimA5bdVr3gs"><input type="checkbox" class="chk" data-page-node-id="gdkCh0Yz9grhmAMZKoKdHn" data-ed-base=""></td><td data-page-node-id="BxejsFiH3Rm2OsxZIcGTEU" data-ed-base="2">2</td><td data-page-node-id="pwuZbcC3IS8F2VYFyQHrJW" data-ed-base="已采集">已采集</td><td data-page-node-id="EU71jSJmVy6JiChMU1LELe" data-ed-base="230005122">230005122</td><td data-page-node-id="6BXbkO33JjBPzcRBdpvFpA" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="oxU1NdBX1Gt9A2B3wIdgb8" data-ed-base="胃窦">胃窦</td><td data-page-node-id="juBvKYK4q60FkWnrC6SsC1" data-ed-base="2块">2块</td><td data-page-node-id="BtIBbnwCT7XnuG2Pu3rsKk" data-ed-base="李小花">李小花</td><td data-page-node-id="ZNDKAaxrJuA4IQlW6Tp87x" data-ed-base="32">32</td><td data-page-node-id="4Hs3L23aQLAtSqkPyTQUXZ" data-ed-base="女">女</td><td data-page-node-id="wFGYZtDBrMovSMZ1THuFJC" data-ed-base="2520000316">2520000316</td><td data-page-node-id="FjMEfYTXOiFcR1GgU4D73V" data-ed-base="2160002">2160002</td><td data-page-node-id="jJQXokRm4iyWuFCEhLeo3x" data-ed-base="066124">066124</td><td data-page-node-id="L7ZzZr0NqFfZbZHI0QouQC" data-ed-base="住院">住院</td></tr>
+              <tr data-page-node-id="NMHJGeGGXqOaCHGFVS9gTK"><td data-page-node-id="vksnCZKgP8SPlDR77gU2l4"><input type="checkbox" class="chk" data-page-node-id="zYtOtql3AIKVwS7Gts1tzm" data-ed-base=""></td><td data-page-node-id="Gbsw2yLOdS5hcAHEOnT4p0" data-ed-base="3">3</td><td data-page-node-id="4A3T3T86moNQJFNTSFlfsP" data-ed-base="已接收">已接收</td><td data-page-node-id="RYKakZp3Wd2IcVzDO5Xo4P" data-ed-base="230005123">230005123</td><td data-page-node-id="E8BJBu7CE8EyFAb8Tf3zPq" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="KX7lbZeYvFJY85svJH9ruo" data-ed-base="胃底">胃底</td><td data-page-node-id="QHxI1W2DqRmyxzAtAirWLp" data-ed-base="1个">1个</td><td data-page-node-id="OP1CF7FtJXajWAeWPDDL7A" data-ed-base="吴小华">吴小华</td><td data-page-node-id="mVjdg2u0FvbO745GLXmF2G" data-ed-base="33">33</td><td data-page-node-id="FFllRyuvLBLfN5v5WbBWmE" data-ed-base="男">男</td><td data-page-node-id="8ehNkzvmvcQlDKcDw61xoI" data-ed-base="2520000317">2520000317</td><td data-page-node-id="rWrPBJ1XTkHBShNnfNMQcN" data-ed-base="2160003">2160003</td><td data-page-node-id="YCTdDrxTLjpK9dBbrtE4eU" data-ed-base="066125">066125</td><td data-page-node-id="Vpso6NvInSLZPkHKSZHgA7" data-ed-base="住院">住院</td></tr>
+              <tr data-page-node-id="FYnYoEWCI5ktayA0ToO0kY"><td data-page-node-id="5BXbiWNZ54JczLlZCb4mr5" data-ed-base=""></td><td data-page-node-id="vpyjSsMADCpKjTpFpG4oSj" data-ed-base=""></td><td data-page-node-id="LcWa1PGD9SI7OJBHRe3Bt8" data-ed-base=""></td><td data-page-node-id="AtLxpzXOeEtPPvrlYbvZMJ" data-ed-base=""></td><td data-page-node-id="ZNdcUK9BtUpedwbagIS7pW" data-ed-base=""></td><td data-page-node-id="WSGDQGJS34N75tg7CkciI3" data-ed-base=""></td><td data-page-node-id="y8nAgTgwLH7DvJgn78ZPFg" data-ed-base=""></td><td data-page-node-id="THzveAFFpN8rDAA2LsEAEb" data-ed-base=""></td><td data-page-node-id="tGxPBwoB3v0zoFmnXAZyIs" data-ed-base=""></td><td data-page-node-id="19AKsmjgiF0f0PVYDPB638" data-ed-base=""></td><td data-page-node-id="Vj7LDPJLNRiliJChIyteLA" data-ed-base=""></td><td data-page-node-id="enVXYGHru68nUzn8lT3XUP" data-ed-base=""></td><td data-page-node-id="8zwSS1bj0OA0xnkuV07jvh" data-ed-base=""></td><td data-page-node-id="JvKvytu7sTgp0gomI8D3hs" data-ed-base=""></td></tr>
+              <tr data-page-node-id="wWpnmRHifnYIAgf7NzDBUr"><td data-page-node-id="iBqAbB3hR88KAwebQjEPY4" data-ed-base=""></td><td data-page-node-id="3ByGAVyqnENHKcm7o1RQmX" data-ed-base=""></td><td data-page-node-id="3lJn0D4nDYX7OV7a2VSCpI" data-ed-base=""></td><td data-page-node-id="NxquhDHf2DmkUWMz08WSUo" data-ed-base=""></td><td data-page-node-id="E7y7NcdUtLsptnvHzC2lWI" data-ed-base=""></td><td data-page-node-id="T5nq5gR8gUd3Phb38HglyD" data-ed-base=""></td><td data-page-node-id="5vQPldRCxzmzgQuCYFiFKw" data-ed-base=""></td><td data-page-node-id="ojViH00smLDcNRiU0MRySk" data-ed-base=""></td><td data-page-node-id="s7vhgsQYAqycAopso3WWK0" data-ed-base=""></td><td data-page-node-id="QcKNeblFkPvEKfrVdTD3CY" data-ed-base=""></td><td data-page-node-id="5CpLkQRkeosUAomOEwvIXe" data-ed-base=""></td><td data-page-node-id="eM8B0EAUIRR8mB7bEpdNWf" data-ed-base=""></td><td data-page-node-id="pU82QbR1CZAhuBxGVCithn" data-ed-base=""></td><td data-page-node-id="G3m6XlZCqb9ErHaNYV3R86" data-ed-base=""></td></tr>
+              <tr data-page-node-id="3HSQuc9GKbQN5BTmkcI2FJ"><td data-page-node-id="wBcT01xkQMvTZ2CFm09uEg" data-ed-base=""></td><td data-page-node-id="YLCEdvtdhJhr2DhXHzOEMW" data-ed-base=""></td><td data-page-node-id="hABB0cDJzkfi4AHjGyVY2J" data-ed-base=""></td><td data-page-node-id="sOiGsuv0RnDAW7v0vWCfk2" data-ed-base=""></td><td data-page-node-id="uLcr4bLcEWy4sanxJKdgkd" data-ed-base=""></td><td data-page-node-id="OeisiypTs1Sj9WGR2EpzKr" data-ed-base=""></td><td data-page-node-id="WCSfwMYBuWwRPRhab5Oexl" data-ed-base=""></td><td data-page-node-id="nSi5ofZFoSSrj2EqIhB8uY" data-ed-base=""></td><td data-page-node-id="e3G1rg29qyPfg4zzKxDxqA" data-ed-base=""></td><td data-page-node-id="QOo2ra0LxLo4rkbb6YAibB" data-ed-base=""></td><td data-page-node-id="xCP86tl0otiL39ELRrM3cZ" data-ed-base=""></td><td data-page-node-id="DS15nlGjZ3Z0Gom1Hduvsu" data-ed-base=""></td><td data-page-node-id="Yj63bSHE0nRAB2HLVJF4UV" data-ed-base=""></td><td data-page-node-id="P4dy71MOvKHpZL4YC5lFUe" data-ed-base=""></td></tr>
+              <tr data-page-node-id="ZCr7YfgghcDSTuLMDAeE9S"><td data-page-node-id="yw4ZaxbwD3i31IB8jCZSsf" data-ed-base=""></td><td data-page-node-id="Ne1bNFwdNDOucoaPBsqaYC" data-ed-base=""></td><td data-page-node-id="ibBk6g3CFCFzjsG8BSuhrZ" data-ed-base=""></td><td data-page-node-id="fGYALfdPFOjCHBRSoQh596" data-ed-base=""></td><td data-page-node-id="TIXD1KgB65frEXwuZjEmGf" data-ed-base=""></td><td data-page-node-id="ZO4LZQgHdNPuUV18iPF81R" data-ed-base=""></td><td data-page-node-id="M77uRiNjGnxLmhm7soj6IU" data-ed-base=""></td><td data-page-node-id="cLj7vdJFGM34VlW82pnHdI" data-ed-base=""></td><td data-page-node-id="5H2B4natsDZ2i2DclI5RLH" data-ed-base=""></td><td data-page-node-id="dSKzb33AyBLc1VoBqQ7zjW" data-ed-base=""></td><td data-page-node-id="9CYWr92aJea4rBecf2uoS8" data-ed-base=""></td><td data-page-node-id="k182yKHrW0yBWKcZ0qXqmQ" data-ed-base=""></td><td data-page-node-id="l5zQSUQVHqQ3c6NQUtkCDu" data-ed-base=""></td><td data-page-node-id="Q48HkvI3Mzk9ZymKhXBmPa" data-ed-base=""></td></tr>
+              <tr data-page-node-id="XZ7VqysrWIgYLwm1Kaugus"><td data-page-node-id="AAjWws3VBlXDRfklUisoGO" data-ed-base=""></td><td data-page-node-id="PyBc0ZsF8rDVwfqiAzdZg9" data-ed-base=""></td><td data-page-node-id="ubINxx2vv9ECrCyg0kDfm4" data-ed-base=""></td><td data-page-node-id="cAlGjUZHvKE1dBxOtElXJ1" data-ed-base=""></td><td data-page-node-id="Vk3ixPtL3QxFFNdFkj4RKz" data-ed-base=""></td><td data-page-node-id="vK2oaPATlEgOfcn4eNC65F" data-ed-base=""></td><td data-page-node-id="D1FGqe5XZkCrGDmD8cQLrj" data-ed-base=""></td><td data-page-node-id="AUZmoGGDfvZa3OPA0BUNV9" data-ed-base=""></td><td data-page-node-id="tPHH7OPHJ7RtM1jOKNXjDH" data-ed-base=""></td><td data-page-node-id="f18yW1wsOgUO7glSTxxEYn" data-ed-base=""></td><td data-page-node-id="nGC6HjfmHVyAktEmdbGcLb" data-ed-base=""></td><td data-page-node-id="NasNtoJvnNWTxpJtQG2UHB" data-ed-base=""></td><td data-page-node-id="JZjCTmsmUxtIokngA3YYEI" data-ed-base=""></td><td data-page-node-id="ugapLX6OCpY0jfEJMKxNrR" data-ed-base=""></td></tr>
+              <tr data-page-node-id="pGipxl5ic0SzM8xvGLaaYL"><td data-page-node-id="1GF56dQnJmOSxn2S9ye7T8" data-ed-base=""></td><td data-page-node-id="GAU5Cc2EXhGMeCWirSdu1c" data-ed-base=""></td><td data-page-node-id="B06F0Pfco7dkvqDwF0zpFJ" data-ed-base=""></td><td data-page-node-id="PDJn1GsWokudRFvvy736VA" data-ed-base=""></td><td data-page-node-id="aIxCOeHIWrqqHD3Et4eVui" data-ed-base=""></td><td data-page-node-id="AeHYW1W9pRytJSAEbwnXag" data-ed-base=""></td><td data-page-node-id="jSH882liR5exk6Y4YUbGVs" data-ed-base=""></td><td data-page-node-id="18fSCeDIHvJ4pezhPxEDnU" data-ed-base=""></td><td data-page-node-id="DiVHqWuDIiJgR60cY1tQbv" data-ed-base=""></td><td data-page-node-id="2Zt3TwAl1hnCWQYEd82Xnx" data-ed-base=""></td><td data-page-node-id="dohepWbp6xBAoNKAQRTKat" data-ed-base=""></td><td data-page-node-id="ULAiPByhrkcxSIOYd1NXse" data-ed-base=""></td><td data-page-node-id="sBRqx5qULKiCZH7AGCanXz" data-ed-base=""></td><td data-page-node-id="h6ZJM4fa8dHNsGunc0Fygx" data-ed-base=""></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px" data-page-node-id="Rmk1GSJ9TeoSCxdpOEjr6m">
+          <div style="border:1px solid #cfd6e0;background:#f7f9fc;font-size:13px;color:#333;padding:8px 60px" data-page-node-id="T7vibS5J4NRnOD0P7l3eks" data-ed-base="申请单数">申请单数</div>
+          <div class="pg" style="padding:0" data-page-node-id="DaYOdK2aFBPvctSfU8eicP">
+            <div class="p" data-page-node-id="UeNLuNn9dmuJFkv6T2WAKa" data-ed-base="上一项">上一项</div><div class="p" data-page-node-id="pMEglZnkWWoetYwOaEkHhz" data-ed-base="1">1</div><div class="p on" data-page-node-id="RDexYDDMskeV0UAFv8jY0q" data-ed-base="2">2</div><div class="p" data-page-node-id="dpR9jGTqfZVtbBqj6Z9cEz" data-ed-base="3">3</div><div class="p" data-page-node-id="DMcvslN1KpsAf019MPpJMn" data-ed-base="下一项">下一项</div>
+          </div>
+        </div>
+      </div>
+      <!-- 已打包列表 -->
+      <div id="pkEd" style="display:none" data-page-node-id="zwnLQCPRlkDhsQ2UmgDWqY">
+        <div class="tbl" data-page-node-id="U6r5955OGc8kxZxvT9Tejt">
+          <table data-page-node-id="l9GRVROBmALjmjSPKcTYzu">
+            <colgroup data-page-node-id="tjHvTJGwUrJsVSck3p36LB"><col style="width:40px" data-page-node-id="3GsNNSr6GqxXwJ3aqUbzCh" data-ed-base=""><col style="width:50px" data-page-node-id="kPblNVLbbgzP9Sr5VGs9VP" data-ed-base=""><col style="width:80px" data-page-node-id="APe7288hN5BkEe8Wfa2tBz" data-ed-base=""><col style="width:100px" data-page-node-id="4pHlx4ZTez40ZG5oMN6vbD" data-ed-base=""><col style="width:90px" data-page-node-id="LIz0odo6o0ILRVJRTzYbbk" data-ed-base=""><col style="width:90px" data-page-node-id="ArqluHgszELJdXZnA2k4h1" data-ed-base=""><col style="width:90px" data-page-node-id="vKE9dhQuXp7VeLTK0zbFni" data-ed-base=""><col style="width:80px" data-page-node-id="i47Wj6d3wnjuLE2NVKKkNf" data-ed-base=""><col style="width:60px" data-page-node-id="elARrlAw18IgQmKGjOqwQD" data-ed-base=""><col style="width:60px" data-page-node-id="smGDvDroNmMAhsnqrwZQHg" data-ed-base=""><col style="width:110px" data-page-node-id="wpXmQzvt7B2Gy3KMsB8b1l" data-ed-base=""><col style="width:90px" data-page-node-id="qkE3n1Ledo7WercmnFcuRH" data-ed-base=""><col style="width:100px" data-page-node-id="hrEzQ4GHbWktRnpDVKD8Mc" data-ed-base=""><col style="width:60px" data-page-node-id="MOKK6wdvInF5VxdsPehCjw" data-ed-base=""><col style="width:150px" data-page-node-id="oVhUNwpE6wCybhJFWgkNHa" data-ed-base=""><col style="width:150px" data-page-node-id="f6L7altWcEzFk2GkKrHAfG" data-ed-base=""><col style="width:150px" data-page-node-id="RVjsPeMG8nrKVe709OToa8" data-ed-base=""><col style="width:100px" data-page-node-id="FLWYmUa2p4DRg5f2E22Iew" data-ed-base=""><col style="width:100px" data-page-node-id="o4PYPjBnoC2LiwwHh0U9LK" data-ed-base=""></colgroup>
+            <thead data-page-node-id="MwWklhgKVFZnF9ZJ0bztiB"><tr data-page-node-id="zPBOVmsUNmxJwHdPkYpFNH"><th data-page-node-id="00jPQnPFPmzDee5K4KTrDt"><input type="checkbox" class="chk" data-page-node-id="JoBS2ONhaJaEJGml3GK9yu" data-ed-base=""></th><th data-page-node-id="MgWlTIX9GwjOABuZBqLMRf" data-ed-base="序号">序号</th><th data-page-node-id="w32Wo3rDlDVbq9qDC8hwrg" data-ed-base="标本状态">标本状态</th><th data-page-node-id="XFWy8eNqIrSX8lC1ESsiH3" data-ed-base="条码号">条码号</th><th data-page-node-id="QTP28DPKDtqRKPvnq33vGg" data-ed-base="包裹号">包裹号</th><th data-page-node-id="pTzzijB7TtdaoGpQ1ZBsvu" data-ed-base="标本名称">标本名称</th><th data-page-node-id="6yNpzVeGCp6QxUACcB3PZ6" data-ed-base="标本部位">标本部位</th><th data-page-node-id="s2ISb2fZsxiAJwps8t0Gg2" data-ed-base="标本数量">标本数量</th><th data-page-node-id="BNJfJdcoPHXa7DeqeFohlM" data-ed-base="患者姓名">患者姓名</th><th data-page-node-id="Isv6NonFD6alGsgB8c6dv3" data-ed-base="年龄">年龄</th><th data-page-node-id="mKsHRaTFP3Qc5VShcduCsx" data-ed-base="性别">性别</th><th data-page-node-id="n8643QYi6NKMVkq59cX3d6" data-ed-base="申请单号">申请单号</th><th data-page-node-id="DAb5DwTNZLxaiuuiXSMSMG" data-ed-base="检查ID">检查ID</th><th data-page-node-id="bpIqMh0WaRdfU2tWRW3HF7" data-ed-base="门诊/住院号">门诊/住院号</th><th data-page-node-id="giIoL0kk270cYNwiFTEVnS" data-ed-base="来源">来源</th><th data-page-node-id="X5iGOVCP743dYAfjWlFwLD" data-ed-base="申请时间">申请时间</th><th data-page-node-id="tfuG6IBYw8RqNJgggMlFZ8" data-ed-base="离体时间">离体时间</th><th data-page-node-id="7LrGkcuZfYWGlN2ZeGuIdH" data-ed-base="固定时间">固定时间</th><th data-page-node-id="47MWtEw4kMdBHe9tOis1oF" data-ed-base="申请科室">申请科室</th><th data-page-node-id="IhC3mrUSc3oKaVqToa3GIm" data-ed-base="申请医生">申请医生</th></tr></thead>
+            <tbody data-page-node-id="WAiYp6wihXrJgKIJgo4HQN">
+              <tr data-page-node-id="dYh6Nxu8KtZpxSM3DOoZsn"><td data-page-node-id="l8186oSRLBznA21TWeFgMD"><input type="checkbox" class="chk" data-page-node-id="SC2SqpAMXTmJo0S5GgF54z" data-ed-base=""></td><td data-page-node-id="FOQx0UcgLCKY8LPqLKn0SA" data-ed-base="1">1</td><td data-page-node-id="l5BeGHXFw4NYqgQ95GhksB" data-ed-base="已申请">已申请</td><td data-page-node-id="GUoRC5erZvSDJOtpYytgYL" data-ed-base="230005121">230005121</td><td data-page-node-id="JljtQiAHbYAfLGPFqn96x2" data-ed-base="300012">300012</td><td data-page-node-id="GuxEx4hRQVnCOanPnbIH02" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="VUUYoexDJHotWpewZjRDFS" data-ed-base="胃体">胃体</td><td data-page-node-id="mLlQEyrt53oWW2MgXbkSYG" data-ed-base="2块">2块</td><td data-page-node-id="42pLTPG11RxS8ImDsr5uqP" data-ed-base="张小花">张小花</td><td data-page-node-id="pA26wru48L4PGlAbMTDyUy" data-ed-base="32">32</td><td data-page-node-id="uIU1vj4CYNu1eogik8ICqU" data-ed-base="女">女</td><td data-page-node-id="vA4qeIYiFRgCPPrEDYztI2" data-ed-base="2520000315">2520000315</td><td data-page-node-id="R97unbwsM7ZiwNMbscBPEm" data-ed-base="2160001">2160001</td><td data-page-node-id="t7GY4useknhwRc2en0ccg2" data-ed-base="066123">066123</td><td data-page-node-id="prTDHrcQ8eLphQcIA0zkCC" data-ed-base="门诊">门诊</td><td data-page-node-id="WViB4KvO4tNLEXn7rB7q8i" data-ed-base="2026-08-10 10:00:00">2026-08-10 10:00:00</td><td data-page-node-id="wTUlbcVko0q8S2v3TOMWgV" data-ed-base="2026-08-10 10:00:00">2026-08-10 10:00:00</td><td data-page-node-id="FCoRBCAzDTtyLk7lSuFbbD" data-ed-base="2026-08-10 10:10:00">2026-08-10 10:10:00</td><td data-page-node-id="hjSQlqfKr8LSaAVqqnzOlz" data-ed-base="内镜科">内镜科</td><td data-page-node-id="jZcoeiHyL4cvE9TGSQ2DVw" data-ed-base="张医生">张医生</td></tr>
+              <tr data-page-node-id="IiBcYc8qvmXh6CyzDYpH5G"><td data-page-node-id="1qjgUAluWajCrNyTo1Cm5a"><input type="checkbox" class="chk" data-page-node-id="IigDlv5BQjw5WHxpVXKoM4" data-ed-base=""></td><td data-page-node-id="7Rrcb9MFJG3vb8uQnsUMB9" data-ed-base="2">2</td><td data-page-node-id="LfFLaS7rFqBbaKFYJdr07n" data-ed-base="已采集">已采集</td><td data-page-node-id="etFDkJ9ViSJqAXqT8ndWAx" data-ed-base="230005122">230005122</td><td data-page-node-id="MoOSgSFfOIdoPSvMl8GOlK" data-ed-base="300012">300012</td><td data-page-node-id="l8XmirONI2gt5tFT5aMAoX" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="FXp5mCkt2vlgCewusXqiC6" data-ed-base="胃窦">胃窦</td><td data-page-node-id="AcL4skLh5UQH3ZUgrzaILj" data-ed-base="2块">2块</td><td data-page-node-id="42mvIkfpNJICffqBRs3QwT" data-ed-base="李小花">李小花</td><td data-page-node-id="W9L2tahZs9wJI4fsZ4bV3N" data-ed-base="32">32</td><td data-page-node-id="UysTiUI2ooDWgYBRBWUDxd" data-ed-base="女">女</td><td data-page-node-id="HibMDpdPpGAFoGzBq9MCyc" data-ed-base="2520000316">2520000316</td><td data-page-node-id="sKyqYnVOyvFC2hcKyw7DBm" data-ed-base="2160002">2160002</td><td data-page-node-id="U7vkWfDAWJac5MWZ7g7bHJ" data-ed-base="066124">066124</td><td data-page-node-id="DTlBXV9srRYaI3IECQ8qql" data-ed-base="住院">住院</td><td data-page-node-id="3l9KSV8Du2O4sRaWHQKFvU" data-ed-base="2026-08-10 10:00:00">2026-08-10 10:00:00</td><td data-page-node-id="M9GYNm0AF1zAcNIWQFUouf" data-ed-base="2026-08-10 10:00:00">2026-08-10 10:00:00</td><td data-page-node-id="gN0g7WfZNqA4M0LBxVBiPD" data-ed-base="2026-08-10 10:10:00">2026-08-10 10:10:00</td><td data-page-node-id="SSGM1PLRhPaUTeRmV5jQC6" data-ed-base="内镜科">内镜科</td><td data-page-node-id="Hj20bcMGezbFA1s9aCJOdj" data-ed-base="张医生">张医生</td></tr>
+              <tr data-page-node-id="CCFOfGwJMeHsadBhTKkLbW"><td data-page-node-id="ZhhRiXAllXuY6FFCdvF3FK"><input type="checkbox" class="chk" data-page-node-id="52PHcxursB24KSNZgX7LGa" data-ed-base=""></td><td data-page-node-id="c4whaxvgLdwmNDTTPRj7o7" data-ed-base="3">3</td><td data-page-node-id="5ZOBL8VED4eRzK12cN9U6R" data-ed-base="已接收">已接收</td><td data-page-node-id="oUZHyaDTjTzheQLm0IuUjq" data-ed-base="230005123">230005123</td><td data-page-node-id="PZBfDlDyn2haiPjtgDyMAH" data-ed-base="300013">300013</td><td data-page-node-id="KlvEUHJRzlBjpZ1PDRz3ZG" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="ByRiCteMrmCgVbaoAYOP6y" data-ed-base="胃底">胃底</td><td data-page-node-id="t0AdKfvfNOkuLCPFmn7OwB" data-ed-base="1个">1个</td><td data-page-node-id="ELOd4ySuYMSiG6DrAfEqAd" data-ed-base="吴小华">吴小华</td><td data-page-node-id="kchnFLHagR2Im45geZXAIF" data-ed-base="33">33</td><td data-page-node-id="9c8eVHOa6NMcyXEe1QWAdO" data-ed-base="男">男</td><td data-page-node-id="7kH4J3VS2xCcU3naaXGEgD" data-ed-base="2520000317">2520000317</td><td data-page-node-id="R3pX3KOvwl3DmmcHBxsHDI" data-ed-base="2160003">2160003</td><td data-page-node-id="1tbL91sr90qhYlxyaukfJq" data-ed-base="066125">066125</td><td data-page-node-id="viP33khIIwVfqKTR7avKos" data-ed-base="住院">住院</td><td data-page-node-id="YUndwv6c3Q7Bpw7OwChCf3" data-ed-base="2026-08-10 10:00:00">2026-08-10 10:00:00</td><td data-page-node-id="nrcp5NRxrZRgtteamwoNHz" data-ed-base="2026-08-10 10:00:00">2026-08-10 10:00:00</td><td data-page-node-id="3jnF3lO4eih8BTkhCIRc7G" data-ed-base="2026-08-10 10:10:00">2026-08-10 10:10:00</td><td data-page-node-id="nNXjxAS5HaMsgrWWLlGdic" data-ed-base="内镜科">内镜科</td><td data-page-node-id="vcALPHQwmHeQLklfMOhbMU" data-ed-base="张医生">张医生</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px" data-page-node-id="qIiC08kA85e6Jm5ptVqvNJ">
+          <div style="border:1px solid #cfd6e0;background:#f7f9fc;font-size:13px;color:#333;padding:8px 20px" data-page-node-id="ntJgL1NCm5CMwHiGXTJJmh" data-ed-base="申请单数：5　标本数：10　已选中：5">申请单数：5　标本数：10　已选中：5</div>
+          <div class="pg" style="padding:0" data-page-node-id="AFgsg1afU83HKHfbmZJvAW">
+            <div class="p" data-page-node-id="JvGgrtMAlwL37D3ZE72llx" data-ed-base="上一项">上一项</div><div class="p" data-page-node-id="mGb2mTuJb8evgBoR3GISG6" data-ed-base="1">1</div><div class="p on" data-page-node-id="raFNFTdIJZ2mwIH0n9AUD8" data-ed-base="2">2</div><div class="p" data-page-node-id="lWJkhFLxpvRXFYhU450z4D" data-ed-base="3">3</div><div class="p" data-page-node-id="Ewb2rCG9b61pxw3aAwgDsZ" data-ed-base="下一项">下一项</div>
+          </div>
+        </div>
+      </div>
+      <div class="note" style="margin:0 16px 14px" data-page-node-id="ehPd4cb9KxHe4iBqKSlSSI">
+        <b data-page-node-id="6KYaRYFiDADWqEO6VJYoPA" data-ed-base="1.">1.</b>扫码后，有匹配的数据自动置顶；<br data-page-node-id="aOs57Ohjb94zAoBWuuILGt" data-ed-base="">
+        <b data-page-node-id="HwPHWGzKfgsB8ggYTyjoSK" data-ed-base="2.">2.</b>勾选的要放在最前面；
+      </div>
+      <div class="ft" data-page-node-id="9lQ0X7ItUancx4LVNJ6P8S" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+  <!-- ============ 标本输送 ============ -->
+  <div class="pg-sec" id="pgSend" data-page-node-id="3F2AqG8hQoIcDwGTlS6Cs9">
+    <div class="page" data-page-node-id="pzseFRh04lEjTJaMAyXSPG">
+      <div class="crumb" data-page-node-id="icDpeoSGC6fZAQV2eDLwui">当前位置：标本管理 / <b data-page-node-id="6FD0DIAdEb5DxH3otocDAa" data-ed-base="标本输送">标本输送</b></div>
+      <div class="empty" data-page-node-id="4qDsYPIQE71TgXyQ3PiMEf"><div class="e-ico" data-page-node-id="CZX4huyiTIfT2L3rPXgmuy" data-ed-base="⧉">⧉</div><div data-page-node-id="yGllfoc7oXaHZgFWBRyaGv">「标本输送」页面占位<br data-page-node-id="XKLcLA7fy3bc5b9D7NGp3x" data-ed-base="">待按需求补充设计</div></div>
+      <div class="ft" data-page-node-id="IqbVlxvZhDYwZzHuoFuJHF" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+  <!-- ============ 标本接收 ============ -->
+  <div class="pg-sec" id="pgRecv" data-page-node-id="SB1LAL72UUyealHLRGcsCy">
+    <div class="page" data-page-node-id="636YHCpyQIwPjfRXOF8oa7">
+      <div class="crumb" data-page-node-id="nrU7bAa9YKLYtRs8PRMYah">当前位置：标本管理 / <b data-page-node-id="fGjkrwFPnSK2VvdRIsMd8F" data-ed-base="标本接收">标本接收</b></div>
+      <div class="sec-h" data-page-node-id="QCSVkOcULRvR12pd5NTBYx"><span class="bar" data-page-node-id="UqbMyEpD6qEQkM8iVUDzG6" data-ed-base=""></span>已送检未接收列表
+        <span style="font-size:13px;font-weight:400;color:#606266;margin-left:18px" data-page-node-id="kwz5fVMqkwHTqiZ6NyHrmc">申请单数：<span class="stat-num" data-page-node-id="N60xBVFDEPW1LAmtVFqCHF" data-ed-base="666">666</span>　标本数：<span class="stat-num" data-page-node-id="EJiBJ52AekAqkRBcSwPB8r" data-ed-base="666">666</span></span>
+      </div>
+      <div class="qbar" data-page-node-id="YfpKckR0HmXCDFpm5yXorA">
+        <select class="kw" data-page-node-id="XkkOngeqLsEsQbOVYstdQL"><option data-page-node-id="azH07ObDwZJ3tCHLOJSc7t" data-ed-base="采样时间">采样时间</option><option data-page-node-id="O1HXCCbFE8qEZgAf1OyZKS" data-ed-base="申请时间">申请时间</option></select>
+        <input class="date" value="YY-MM-DD HH:mm ~ YY-MM-DD HH:mm" data-page-node-id="EFmARy6FU1tyGIPQrVHu17" data-ed-base="">
+        <span class="lb" data-page-node-id="bvYynBdn2MBhFvUb8Xhccf" data-ed-base="申请科室：">申请科室：</span>
+        <select class="kw" data-page-node-id="FExwUbSRiulyCbNeuRGObZ"><option data-page-node-id="4FPcj1q8Vcl826okeL7hue" data-ed-base="内镜室">内镜室</option><option data-page-node-id="VnFmTUM8Q7lJx26huSOrPe" data-ed-base="手术室">手术室</option></select>
+        <span class="lb" data-page-node-id="4XqqOZ8CZtKkFJ30nBW4nX" data-ed-base="门诊/住院：">门诊/住院：</span>
+        <input class="kw" data-page-node-id="ixuMsEBOUDSAZod5ei3ia0" data-ed-base="">
+        <span class="lb" data-page-node-id="zrFJJtunsPods4zNMAFCjr" data-ed-base="条码号：">条码号：</span>
+        <input class="kw" placeholder="扫描/输入条码号" data-page-node-id="QHgbPfqxFHFZ65HXYaKzvE" data-ed-base="">
+        <div class="btn" data-page-node-id="hjKgQV7urrVP0oApTWErsi"><button class="btn-q" onclick="doQuery()" data-page-node-id="spYQi33EHYPoctc013jnjZ" data-ed-base="查 询">查 询</button><button class="btn-n" onclick="toast('已接收所选标本')" data-page-node-id="cFKZ4Q3HM1GtozheOjHc6H" data-ed-base="接 收">接 收</button><button class="btn-n warn" onclick="openBack()" data-page-node-id="Ybdqs7ZYd5ojbzdTUAueWd" data-ed-base="退 回">退 回</button></div>
+      </div>
+      <div class="tbl" data-page-node-id="881kqSz6VSbr2C3rWBWKGW">
+        <table data-page-node-id="h8DKVTArKrpUlWErJbOHO5">
+          <colgroup data-page-node-id="BIBCgpLCZNsue1Y9wWGg6L"><col style="width:40px" data-page-node-id="G1XHWRjc1uf90mjprOjrTe" data-ed-base=""><col style="width:50px" data-page-node-id="UEDx8wqsaWOyifSk957TIp" data-ed-base=""><col style="width:90px" data-page-node-id="Fo89FAH0o8Xzc63RXLnnxj" data-ed-base=""><col style="width:110px" data-page-node-id="5FX66zyaErfEJz9M0OABzw" data-ed-base=""><col style="width:90px" data-page-node-id="oWRXcLE1V5oG0DdLVY7W39" data-ed-base=""><col style="width:90px" data-page-node-id="ahfUoF5uqMAD1a5fNP1ml9" data-ed-base=""><col style="width:90px" data-page-node-id="FF6VRIpCVRZLVyUSUcWUp4" data-ed-base=""><col style="width:80px" data-page-node-id="oOIskH89YNAVvR01G6ffZi" data-ed-base=""><col style="width:80px" data-page-node-id="7CBLsqtXBgypDlpf9UYSBn" data-ed-base=""><col style="width:150px" data-page-node-id="lSOSHFycBfH7AWuPku5jIe" data-ed-base=""><col style="width:120px" data-page-node-id="uyR37tq8b4yfHUKhDz2dGH" data-ed-base=""><col style="width:150px" data-page-node-id="m9AkAvbMqK0ULPcWcC6KAc" data-ed-base=""><col data-page-node-id="VI2vL5ALnJUshylZHiGXuN" data-ed-base=""></colgroup>
+          <thead data-page-node-id="ySbWliwoqIU9eE2k3yxZZ9"><tr data-page-node-id="qm9mP5oUnYv7YUw1XdQwhD">
+            <th data-page-node-id="nTBJEQsCF4Z0qJm07t7vFL"><input type="checkbox" class="chk" data-page-node-id="jm7YrQ4gr7GK59t5NYt9Js" data-ed-base=""></th><th data-page-node-id="fDKPb6fxxWCwVutZgX8jOE" data-ed-base="序号">序号</th><th data-page-node-id="bQyjLFiDxmoUzzElMHmtHM" data-ed-base="条码状态">条码状态</th><th data-page-node-id="SeuzAyl8O0ZAmTzCj9s2ME" data-ed-base="条码">条码</th><th data-page-node-id="OKpiGbFwg0IDvux9SPaodn" data-ed-base="标本名称">标本名称</th><th data-page-node-id="Dyn4dRuqVdr14bPJLwSDAV" data-ed-base="采样人">采样人</th><th data-page-node-id="PMrUGTX5dlN4umZBYeazyC" data-ed-base="病人姓名">病人姓名</th><th data-page-node-id="Q2CsuR1evn2IA5SP1st5ss" data-ed-base="门诊号">门诊号</th><th data-page-node-id="OieqWp6PGp5I8QrP7vAPYG" data-ed-base="住院号">住院号</th><th data-page-node-id="1pAXTZPlZFkEiv8lAIEXGL" data-ed-base="申请时间">申请时间</th><th data-page-node-id="KFMrgrrpbfJ05pOWRvUcdV" data-ed-base="申请单号">申请单号</th><th data-page-node-id="iFm7FsvCtiLpja2oRLxHba" data-ed-base="离体时间">离体时间</th><th data-page-node-id="YjqQrMMqOTma6G4oRyi3AQ" data-ed-base="固定时间">固定时间</th>
+          </tr></thead>
+          <tbody data-page-node-id="plLdEagZ3o2yN4o8Q4uBBR">
+            <tr data-page-node-id="0vTWDgc70FXpPCPbHbxyAK"><td data-page-node-id="gmiynvLXnJDw08EWLuo6yF"><input type="checkbox" class="chk" data-page-node-id="PPyfEBK1jdaCUAy58u1QWU" data-ed-base=""></td><td data-page-node-id="AxyQ9CWWrqDeaxnDplL6a8" data-ed-base="1">1</td><td data-page-node-id="OIcRWPNBq29KRqWDkgIRSQ" data-ed-base="送检确认">送检确认</td><td data-page-node-id="ep5N6hw9J2kSKTFxSXmHgT" data-ed-base="230005123">230005123</td><td data-page-node-id="mEvbqW43EHnE1VXaGOdS9w" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="H6KgCnuenCJcSW2eRugA5w" data-ed-base="张医生">张医生</td><td data-page-node-id="bvXARfYYf4ydZOXAT0IUyP" data-ed-base="张三">张三</td><td data-page-node-id="gKqeGclopWGRw4pMAK9Y22" data-ed-base="203321">203321</td><td data-page-node-id="MUIh8Cn4ZyeJWiIduW7pio" data-ed-base=""></td><td data-page-node-id="qKGwty2drgoHEi7YnzXAAV" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td><td data-page-node-id="W6cVeanGjKA1pXkwlkvoFc" data-ed-base="2345612331">2345612331</td><td data-page-node-id="y0DTeggzhOlbrhx4pF2PDm" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td><td data-page-node-id="xOhDIDz0AJGFsEb8zBF2dR" data-ed-base=""></td></tr>
+            <tr data-page-node-id="GuIVTk5H7oicCTXAbfb8hf"><td data-page-node-id="2rzUNkKpAlFk9KHyEVD1Jo"><input type="checkbox" class="chk" data-page-node-id="segmxbzqFrwXJBGpKA1CMO" data-ed-base=""></td><td data-page-node-id="LHKtST3VbPOR9gisBhFQjz" data-ed-base="2">2</td><td data-page-node-id="hH3lKvl6mIpxuQzevONw4v" data-ed-base="送检确认">送检确认</td><td data-page-node-id="YuMiwAXwAkmKnCqovh2twY" data-ed-base="230005124">230005124</td><td data-page-node-id="uem6WiEXxtmxDkOes8bY5Z" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="hILT13cE4KfmnKLHj0U1BN" data-ed-base="张医生">张医生</td><td data-page-node-id="1dZjyQU039r7X2709cPwBk" data-ed-base="王五">王五</td><td data-page-node-id="2KIbOhPBiconMTiwz8LMHK" data-ed-base="203322">203322</td><td data-page-node-id="JOhAgTbTgRkAU1RjWgoRPG" data-ed-base=""></td><td data-page-node-id="rrgkd2P3ychZplBgcFj32H" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td><td data-page-node-id="Hn8t0efLGSVieaHmUUjgN0" data-ed-base="2345612331">2345612331</td><td data-page-node-id="gEC8ol0P7cXCXwI0tvhYRj" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td><td data-page-node-id="cu6b1pisJ6oe3pkV5gEzQ2" data-ed-base=""></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="recv-grid" data-page-node-id="jNBWeA7yhpZKEHPWasOVth">
+        <div class="recv-box" data-page-node-id="lNiaZlwgQeW5Um9kjznz7Z">
+          <div class="rb-h" data-page-node-id="IG8p34ZxLxbpiWCfC02Ukf"><span class="t" data-page-node-id="PF9jVpBE5Fuscqg6K2SSuf" data-ed-base="已确认未送检列表">已确认未送检列表</span>
+            <span style="margin-left:auto;font-size:13px" data-page-node-id="wNs2Blh9rTqU7jJJTwPW4g">申请单数：<span class="stat-num" data-page-node-id="LyUoAPJpWk6sQabG7MNHNX" data-ed-base="666">666</span>　标本数：<span class="stat-num" data-page-node-id="6nSLHxQkRFL6jAyMOliaeb" data-ed-base="666">666</span></span>
+          </div>
+          <div class="rb-q" data-page-node-id="M4Q9VnFZtv9UsaXVvEQvaR">
+            <select class="kw" style="width:90px" data-page-node-id="7pUXHlOE0s0GUvqMUvTDzg"><option data-page-node-id="MTBoZtLzsGDHO6A2FMuk4R" data-ed-base="采样时间">采样时间</option><option data-page-node-id="7iAVvN1s8oiGymoaIcgGTt" data-ed-base="申请时间">申请时间</option></select>
+            <input class="date" style="width:170px" value="YY-MM-DD HH:mm ~ YY-MM-DD HH:mm" data-page-node-id="2BxdBkH9SVk6Jb6Dz144RE" data-ed-base="">
+            <span class="lb" data-page-node-id="sHn4PWtUrkNwTA1V6izXCR" data-ed-base="门诊/住院：">门诊/住院：</span><input class="kw" style="width:110px" data-page-node-id="UMBDyordFReHhYEMAA91N9" data-ed-base="">
+            <span class="lb" data-page-node-id="LJlzmZItcn8akUjxNvHnMf" data-ed-base="申请科室：">申请科室：</span><select class="kw" style="width:90px" data-page-node-id="CsyjXh2dYaGtz5XBqZuu2n"><option data-page-node-id="Us6O5C6FcB1V2ILwGmcC7Z" data-ed-base="内镜室">内镜室</option><option data-page-node-id="byEJXbErCsKWJyrCSnZVzc" data-ed-base="手术室">手术室</option></select>
+            <button class="btn-q" onclick="doQuery()" data-page-node-id="EUZDAoq07FCUNVenEOBnDH" data-ed-base="查 询">查 询</button>
+          </div>
+          <div class="rb-b" data-page-node-id="k0DkJfEZAzmfSrnWoLNIMd">字段到时候再定义　<span class="op" style="margin-left:20px" data-page-node-id="NnXEDUty8yTZQ5PUE91Yii"><a data-page-node-id="o6dEsgRFErERsmq4xmY30f" data-ed-base="标本追溯">标本追溯</a>　<a data-page-node-id="gGaMEBFVDh0gtUBYrndzbB" data-ed-base="标本追溯">标本追溯</a></span></div>
+        </div>
+        <div class="recv-box" data-page-node-id="AQ9HHUd3zBJGMgQcy96qEA">
+          <div class="rb-h" data-page-node-id="C1j6RY08q9vKdaUfqWGRZ2"><span class="t" data-page-node-id="e0DHUygWYaxJWQQbHwcXFU" data-ed-base="已接收列表">已接收列表</span>
+            <span style="margin-left:auto;font-size:13px" data-page-node-id="babHukXnTD4XvIRnXypPB0">申请单数：<span class="stat-num" data-page-node-id="sMUOMkcNdNfUJmmBuHwEgQ" data-ed-base="666">666</span>　标本数：<span class="stat-num" data-page-node-id="qCSBsmC1b6p5E5qQkCDFbU" data-ed-base="666">666</span></span>
+          </div>
+          <div class="rb-q" data-page-node-id="mdGLKV3xgEDtAA6bsXt7HQ">
+            <select class="kw" style="width:90px" data-page-node-id="SFmwmLgMCBBNOAQBUIqVR7"><option data-page-node-id="Pt9RL8rERw2fu5YK3KwLbD" data-ed-base="采样时间">采样时间</option><option data-page-node-id="AZcXdeWGPCxNU0ErBlTMOp" data-ed-base="申请时间">申请时间</option></select>
+            <input class="date" style="width:150px" value="YY-MM-DD HH:mm ~ YY-MM-DD HH:mm" data-page-node-id="vvY0NotZAJfEY3IPGqyDn4" data-ed-base="">
+            <span class="lb" data-page-node-id="bdP7IVzhSgUfZGSDdA6FO9" data-ed-base="条码号：">条码号：</span><input class="kw" style="width:110px" placeholder="扫描/输入条码号" data-page-node-id="w9KsfABsoAyHzcRohvb0DI" data-ed-base="">
+            <span class="lb" data-page-node-id="K3vUA52PzmF2ulvi40KH4L" data-ed-base="申请科室：">申请科室：</span><select class="kw" style="width:90px" data-page-node-id="YOzZJWL4m6tkTFPKOSn3xf"><option data-page-node-id="57dWTgB7NvHPssDrj5VSXr" data-ed-base="内镜室">内镜室</option><option data-page-node-id="Tpjd4etBZR1rObLCKYDk9a" data-ed-base="手术室">手术室</option></select>
+            <button class="btn-q" onclick="doQuery()" data-page-node-id="AsAJT1o5PcNiM0dMXjSCbP" data-ed-base="查 询">查 询</button>
+            <button class="btn-n warn" onclick="toast('已退回所选标本')" data-page-node-id="Z5fVDa4yrBEwleuowWJbvV" data-ed-base="退 回">退 回</button>
+          </div>
+          <div class="rb-b" data-page-node-id="faKhGCJBhdPfwDwu4ElUsx">字段到时候再定义　<span class="op" style="margin-left:20px" data-page-node-id="FnHoueKEGBD1h5zH9NrPIw"><a data-page-node-id="0i2I3FU1t3KOlDrrW87iPH" data-ed-base="标本追溯">标本追溯</a></span></div>
+        </div>
+      </div>
+      <div class="ft" data-page-node-id="LUviIvxUEQHodxqoJvwmdy" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+  <!-- ============ 报告查询 ============ -->
+  <div class="pg-sec" id="pgReport" data-page-node-id="V6QSYZazFeo5H795RXYahD">
+    <div class="page" data-page-node-id="fMPS5l8ZbczKZLkghyrqnz">
+      <div class="crumb" data-page-node-id="rWBC4WEyArE7VHH06iOvnu">当前位置：首页 / <b data-page-node-id="ZIGaE0XsSFLuapskqFB0QG" data-ed-base="报告查询">报告查询</b></div>
+      <div class="empty" data-page-node-id="lxx2VZcHwLqBZBiqdEU1rI"><div class="e-ico" data-page-node-id="FbO9455qW98FQ3eBO37rn9" data-ed-base="⧉">⧉</div><div data-page-node-id="Vo0cgG6DvxI1n1CcIXV6jL">「报告查询」页面占位<br data-page-node-id="C9GuuSUXmClYdnh9kMuhwN" data-ed-base="">待按需求补充设计</div></div>
+      <div class="ft" data-page-node-id="bXLxdtp3gDlDoFcmEHn9jV" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+  <!-- ============ 退回接收 ============ -->
+  <div class="pg-sec" id="pgBack" data-page-node-id="FopZSS1KoUTeYFfiKHi0VN">
+    <div class="page" data-page-node-id="MH41GWVUtDfI17aRZCVJDx">
+      <div class="crumb" data-page-node-id="s0XUAwDaeh6HHgYdjVyOYg">当前位置：标本管理 / <b data-page-node-id="IDN5qTVmj8ecwXcCqhuYIa" data-ed-base="退回接收">退回接收</b></div>
+      <div class="sec-h" data-page-node-id="EgQQ0S9NE5yRjOGPQ4zMcg"><span class="bar" data-page-node-id="SNcGDpucmSLBMk0RMNzjjA" data-ed-base=""></span>退回接收列表</div>
+      <div class="qbar" data-page-node-id="nXyh9nRIQGtn1r4qxDPo7a">
+        <select class="kw" data-page-node-id="4MM74SNPGe9Q7xCpDAvRnA"><option data-page-node-id="Fmt8EseLWRvmfwBMLfPseF" data-ed-base="退回时间">退回时间</option><option data-page-node-id="IdDQoIq8nPJC7nZGtuEKnl" data-ed-base="申请时间">申请时间</option><option data-page-node-id="DdHLrIJpMXnLHUvfVTKwiB" data-ed-base="采样时间">采样时间</option></select>
+        <input class="date" value="YY-MM-DD HH:mm ~ YY-MM-DD HH:mm" data-page-node-id="Jd7q5De0mfh1kz8ZctScUO" data-ed-base="">
+        <span class="lb" data-page-node-id="DPskbRJQGfPYwQbFrBYDrv" data-ed-base="申请科室：">申请科室：</span>
+        <select class="kw" data-page-node-id="UDbIgD7RcRClk7haGZiLS3"><option data-page-node-id="uUAKnFlEV3r70fLntE4Rg1" data-ed-base="内镜室">内镜室</option><option data-page-node-id="FgDnTHK5As76jyrCnOJhn1" data-ed-base="手术室">手术室</option></select>
+        <span class="lb" data-page-node-id="wAkqlJ6jIlYlonEUxHdszt" data-ed-base="门诊/住院/体检：">门诊/住院/体检：</span>
+        <input class="kw" placeholder="扫描/输入条码号" data-page-node-id="o3bPVGfiG3T6epbOxTBgZE" data-ed-base="">
+        <span class="lb" data-page-node-id="0fH46iD7oyNb0tyhJcoDwc" data-ed-base="条码号：">条码号：</span>
+        <input class="kw" placeholder="扫描/输入条码号" data-page-node-id="zbdYrcesaCPERWii6ETu8X" data-ed-base="">
+        <div class="btn" data-page-node-id="vVXopDzjdEnuntoec9vOLW"><button class="btn-q" onclick="doQuery()" data-page-node-id="ctWCcFl6Q5FgS1Np66tYpm" data-ed-base="查 询">查 询</button><button class="btn-n" onclick="toast('批量送检：已提交所选标本')" data-page-node-id="L5sSylLGpGv8lR6LJAVGyO" data-ed-base="批量送检">批量送检</button></div>
+      </div>
+      <div class="tbl" data-page-node-id="F0W0av8zzfELUNDAytrHFj">
+        <table data-page-node-id="H7YwQ3IofMNAo0Lm3hK1IQ">
+          <colgroup data-page-node-id="pWAnZWIvNWtyAAXuEKGYUS"><col style="width:40px" data-page-node-id="GoX8lOj0ErCjyGhczbVGeA" data-ed-base=""><col style="width:50px" data-page-node-id="HSL3vWZBaf6sCAGDFKIYzA" data-ed-base=""><col style="width:90px" data-page-node-id="bVWwbZNAO5IEdcrD1Dy05R" data-ed-base=""><col style="width:110px" data-page-node-id="Dlo6nQ4gUW0AyCt1tRE5EJ" data-ed-base=""><col style="width:90px" data-page-node-id="CyOyQ4bPVUinQFzSHiEAIx" data-ed-base=""><col style="width:80px" data-page-node-id="VceTacf4IfvQohnbgkU5g9" data-ed-base=""><col style="width:80px" data-page-node-id="CyGUUl138jEfiPNtkCdnwl" data-ed-base=""><col style="width:80px" data-page-node-id="p3dFtTyRTEUloqB0D3UIWC" data-ed-base=""><col style="width:90px" data-page-node-id="eGGCamFbc2VArhjUSOr3hh" data-ed-base=""><col style="width:90px" data-page-node-id="CTlGBy3CbdApKBPFeh3y24" data-ed-base=""><col style="width:150px" data-page-node-id="ky8odwiAAkUjceCZIYzPH0" data-ed-base=""><col style="width:160px" data-page-node-id="6lpF29LUjOdNozOSSA8FgA" data-ed-base=""><col style="width:150px" data-page-node-id="g1uoekZGt7CqG9chjVDKHk" data-ed-base=""><col style="width:120px" data-page-node-id="JZ9dlAWYtp2WlDZRFaZ3A5" data-ed-base=""><col style="width:150px" data-page-node-id="YchLlELvlgQFVOf2VRkrWI" data-ed-base=""><col data-page-node-id="Zcs2P5l99lO1KNAX4hr81T" data-ed-base=""></colgroup>
+          <thead data-page-node-id="dlLckYvHxEVhquVwkRZFdw"><tr data-page-node-id="4VCoCdbk7Pa5Awc7FnDIQV">
+            <th data-page-node-id="xBwxmHn5lMrUH6vfWQR7kV"><input type="checkbox" class="chk" data-page-node-id="1tVGE5cPIG0hHR7GG4mnn1" data-ed-base=""></th><th data-page-node-id="GxQeo3DwFOnCFbrM5SCmYS" data-ed-base="序号">序号</th><th data-page-node-id="5ivN6hyRz4HI6PQqreEoi4" data-ed-base="条码状态">条码状态</th><th data-page-node-id="wes0xgeO2gO4o8Aar9VfFF" data-ed-base="条码">条码</th><th data-page-node-id="d6DUhP332K14FeKhhICBb1" data-ed-base="标本名称">标本名称</th><th data-page-node-id="wImpyGWYVjsgKumnGTGX3w" data-ed-base="采样人">采样人</th><th data-page-node-id="MhEGhkTCzfOLpMJUX2VNZR" data-ed-base="病人姓名">病人姓名</th><th data-page-node-id="Grgqje9B77pIzogoaWdsYw" data-ed-base="门诊号">门诊号</th><th data-page-node-id="zEG8iuPOZPeeLfAnnTV7He" data-ed-base="住院号">住院号</th><th data-page-node-id="VVzdPvDUjWUGVjNhzVyfYE" data-ed-base="退回者">退回者</th><th data-page-node-id="YrsYLq7UhII4NqiDcUdTwi" data-ed-base="退回时间">退回时间</th><th data-page-node-id="GEjBlPOFF5c7BuZDnyg9GQ" data-ed-base="退回原因">退回原因</th><th data-page-node-id="g1woumXl0kn7oNOyLwIFDL" data-ed-base="申请时间">申请时间</th><th data-page-node-id="XtvWeEJaQuI5X23jGNJiOX" data-ed-base="申请单号">申请单号</th><th data-page-node-id="Pjeh1L9uYf8NDUGhJUdgmc" data-ed-base="离体时间">离体时间</th><th data-page-node-id="F7Ib5qy2Pk1FZ67CmcoGCt" data-ed-base="固定时间">固定时间</th>
+          </tr></thead>
+          <tbody data-page-node-id="tt9tw6I66rv6FzN7lv3pF4">
+            <tr data-page-node-id="6QCqjxtMHVGemsXLJAhzGd"><td data-page-node-id="s7ZnAssRzhjE0Qq2BxEWWS"><input type="checkbox" class="chk" data-page-node-id="C9CdPRbtTqX1hHfjbfTTf6" data-ed-base=""></td><td data-page-node-id="aaAn1oaFZbFlEtMNnhEPFu" data-ed-base="1">1</td><td data-page-node-id="ujvuYGEIYpuvbzzd6JImvu" data-ed-base="已退回">已退回</td><td data-page-node-id="PGKvBqEk0X9QQauhRBVPWh" data-ed-base="230005123">230005123</td><td data-page-node-id="MxRElnCpXV1D8kqD226s6y" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="RVYPalaCLKCw9r9SzRkfBW" data-ed-base="张医生">张医生</td><td data-page-node-id="MwJfGLN0f8kKzPTASjUp2X" data-ed-base="张三">张三</td><td data-page-node-id="ErH3EdZvvmeSCSqAs6cHUI" data-ed-base="203321">203321</td><td data-page-node-id="ErAlaYmMTNuhLgA35MtGUK" data-ed-base=""></td><td data-page-node-id="dylYmwEWHINSuIePVeOcTA" data-ed-base="陈医生">陈医生</td><td data-page-node-id="Ufp9Z0cunXtGCGIJR5qwxL" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td><td data-page-node-id="dkWXyBEL1YlAjGTQmz7TGD" data-ed-base="固定液不足">固定液不足</td><td data-page-node-id="yj1Q8RkE0mE2nQOCWdxXpa" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td><td data-page-node-id="HY2YcxaOOAYBrpqvitxE8o" data-ed-base="2345612331">2345612331</td><td data-page-node-id="iH0uwSPoxno6cSt3X2Pv8w" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td><td data-page-node-id="Aln0CGuReOnLmArJd0Qg4h" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td></tr>
+            <tr data-page-node-id="ilJjMEj7TZHuB9WWpF2YSx"><td data-page-node-id="RatEO36zxE65kt1FgMWhOf"><input type="checkbox" class="chk" data-page-node-id="fgxGmrI38oIU7WPwiDO7yy" data-ed-base=""></td><td data-page-node-id="jG0h3C1Vm9mCNu5LjZPAQR" data-ed-base="2">2</td><td data-page-node-id="N8411KA20kD8wnwOgu7YrY" data-ed-base="已退回">已退回</td><td data-page-node-id="AsKEgDEKt2x6Hb1d1vzW5k" data-ed-base="230005124">230005124</td><td data-page-node-id="Ktu6JptIj3vcDKBdbF9Q3N" data-ed-base="胃息肉">胃息肉</td><td data-page-node-id="Dg0Ydw2DCk0lmCdELevAUj" data-ed-base="张医生">张医生</td><td data-page-node-id="Wt6A7GeucqVB1sdzwGitKQ" data-ed-base="王五">王五</td><td data-page-node-id="EHdZhbP19GDGsUXAzYaHcs" data-ed-base="203322">203322</td><td data-page-node-id="pkQOtpYSgwHl9AV9VKqVcE" data-ed-base=""></td><td data-page-node-id="nwrNkBDby95AcP2EdSvfyt" data-ed-base="陈医生">陈医生</td><td data-page-node-id="YQVG35IhhAmWjzP3iyC4VK" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td><td data-page-node-id="K0oCFWLSOYaIFQqfJaisQF" data-ed-base="标本数量与标签不对应">标本数量与标签不对应</td><td data-page-node-id="GlAygDFR3XHaf7UsCNPWNe" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td><td data-page-node-id="c958p2qcjSMQ3u8hAedmZu" data-ed-base="2345612331">2345612331</td><td data-page-node-id="q2Ly6mg5NA6DXYNE8jQd09" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td><td data-page-node-id="seQNUE9kUxAjJfTXQgdZM4" data-ed-base="2025-09-10 10:15:00">2025-09-10 10:15:00</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note" data-page-node-id="FwLUjMoHrOFTahP5wlLay1" data-ed-base="1.时间查询默认一周；">1.时间查询默认一周；</div>
+      <div class="ft" data-page-node-id="y2XI25dkYLcEMbI2Mw6KCb" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+  <!-- ============ 标本追溯 ============ -->
+  <div class="pg-sec" id="pgTrace" data-page-node-id="nvCJNX178CL2tHHXNNTbqq">
+    <div class="page" data-page-node-id="MsSUpAwKnruoEvwoPDtd7a">
+      <div class="crumb" data-page-node-id="o87ejA5vKKGGbISmORwBfR">当前位置：标本管理 / <b data-page-node-id="UwuEzPGfBtVTyKAGhy69oh" data-ed-base="标本追溯">标本追溯</b></div>
+      <div class="empty" data-page-node-id="PCk9nSAtUovr9Uhw5kpCrL"><div class="e-ico" data-page-node-id="D0nUAQzrDjoXClVrJ33SDf" data-ed-base="⧉">⧉</div><div data-page-node-id="WHM04K9TKZcYacs2PKi9LK">「标本追溯」页面占位<br data-page-node-id="ZHNkW7nogtTFW6w6bIg8XW" data-ed-base="">待按需求补充设计</div></div>
+      <div class="ft" data-page-node-id="7nQYcPLSkKNYoorBHkapR6" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+  <!-- ============ 标本监控 ============ -->
+  <div class="pg-sec" id="pgMonitor" data-page-node-id="JjJwe4OlSR4eDXQtYkHlJb">
+    <div class="page" data-page-node-id="taT3BY6A7yHSMOre7zR3F7">
+      <div class="crumb" data-page-node-id="H0ej50oR6Q5g1SetIH18rC">当前位置：标本监控 / <b data-page-node-id="7P96PfYtmIvBMBAvoAxo9O" data-ed-base="标本监控">标本监控</b></div>
+      <div class="empty" data-page-node-id="aFPpCKZBHEmrRw3dIXuwWD"><div class="e-ico" data-page-node-id="eTkubdhBKKBp3oFtdMQC4P" data-ed-base="⧉">⧉</div><div data-page-node-id="Bw8ps04AZGQ2u351PcFXyG">「标本监控」页面占位<br data-page-node-id="wDzEK77E1ceyzEYagxDiCl" data-ed-base="">待按需求补充设计</div></div>
+      <div class="ft" data-page-node-id="E3WGlXmrc1hjJdB9OBzgRv" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+  <!-- ============ 统计报表 ============ -->
+  <div class="pg-sec" id="pgStat" data-page-node-id="QVeWD7ViRgwphOjAjANoFt">
+    <div class="page" data-page-node-id="DYfaVc06Oc0BX77qwFzIK3">
+      <div class="crumb" data-page-node-id="LAsvC0g4UcFUvAc3kzpSsB">当前位置：统计报表 / <b data-page-node-id="Vm2uXJ6G4VBSZmwONQQ0xj" data-ed-base="统计报表">统计报表</b></div>
+      <div class="empty" data-page-node-id="leyUSi2g1eo9UDgzkC8GRI"><div class="e-ico" data-page-node-id="mkHQwVLhF4a2by9A0rc2R1" data-ed-base="⧉">⧉</div><div data-page-node-id="HIABCBuc6zzUsiSYCUvqfq">「统计报表」页面占位<br data-page-node-id="YAYqlFwzAvFaaM8BCt2yBZ" data-ed-base="">待按需求补充设计</div></div>
+      <div class="ft" data-page-node-id="HQCaCJxUDegG4IgmGpfdcF" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+    <!-- ============ 系统设置：科室流程配置 ============ -->
+  <div class="pg-sec" id="pgFlow" data-page-node-id="UpYJjn6Tx6rBxZkXHGP7JY">
+    <div class="page" data-page-node-id="xxzDgksGnxC7EsUI27gkua">
+      <div class="crumb" data-page-node-id="kswlTh29HAL3uNle8mWT3W">当前位置：系统设置 / <b data-page-node-id="oysZAEEpbcqIOwA85KVIVU" data-ed-base="科室流程配置">科室流程配置</b></div>
+      <div class="conf-head" style="margin:14px 16px;border:1px solid #d9dee5" data-page-node-id="jEjbKegXm2cZI1Yn82Jo6t">
+        <span class="t" data-page-node-id="Z7B6hr7CNhlkRYwlyq215F" data-ed-base="科室流程配置">科室流程配置</span>
+        <span class="sp" data-page-node-id="Q1S2oPa3H3tJ0ZqOLPoiyp" data-ed-base=""></span>
+        <button class="inline-add" onclick="addFlowRow()" data-page-node-id="hWJNKXC1HoCqU1IRxXmUxO" data-ed-base="添加行">添加行</button>
+        <button class="inline-add" onclick="toast('科室流程配置已保存')" data-page-node-id="JMkqAD7BIhcAgbLbBmF2JG" data-ed-base="保存">保存</button>
+      </div>
+      <div class="tbl" style="margin:0 16px" data-page-node-id="KSPf19563EBOAG3CPhk1jC">
+        <table data-page-node-id="ERcmy6e05DrlZF72qAJWmW">
+          <colgroup data-page-node-id="Cu0QZIRrV87P2LGQ9Wxknl"><col style="width:50px" data-page-node-id="ZeLxwPGtg4dzxskdNuLGcn" data-ed-base=""><col style="width:160px" data-page-node-id="YdMLDrnY9B4U5g3ZnEZKka" data-ed-base=""><col data-page-node-id="kPVptVZN2gb93ieehW8atm" data-ed-base=""><col style="width:90px" data-page-node-id="BhqwKCDl0cyC8DkGC3YHCW" data-ed-base=""></colgroup>
+          <thead data-page-node-id="PgfiLSbASBjC9MNhXHRrx0"><tr data-page-node-id="cm13UHCFULmc4zTR9aalKL"><th data-page-node-id="yP7IAlhJ7kZJUsEXJ4TU1N" data-ed-base="序号">序号</th><th data-page-node-id="FVKBw8hlRvGJezIZuduFp6" data-ed-base="科室">科室</th><th data-page-node-id="xoFk1Rpoo19Gg0fovOacOE" data-ed-base="流程">流程</th><th data-page-node-id="vT9Z8rd614dUSWjfGpK4j4" data-ed-base="操作">操作</th></tr></thead>
+          <tbody id="flowBody" data-page-node-id="x2zcRkvidWIHPwi4BSTBZN">
+            <tr data-page-node-id="t6N7PPALpd8jzDYCp0gdfs"><td data-page-node-id="Tqgaw6rms0njLUyUu5aaBv" data-ed-base="1">1</td><td data-page-node-id="nGxz6xDzLJlyws9uYBRnQO" data-ed-base="通用">通用</td><td data-page-node-id="y4sDlcwa9099Ccm7FwqiIx" data-ed-base="生成条码、打印条码、冰冻、送检、接收">生成条码、打印条码、冰冻、送检、接收</td><td class="op" data-page-node-id="TtDZAFcBEoxJwTGdQxEK4Z" data-ed-base="-">-</td></tr>
+            <tr data-page-node-id="SW7p6DNivBUMDhIRbNcTig"><td data-page-node-id="xzK4uDHIgWGVsII7Xv876e" data-ed-base="2">2</td><td data-page-node-id="tIIAJKuyhBE5jO1CHt5Jp9"><select style="width:88%;height:26px" data-page-node-id="Oler9ahbKfGRt2EOLXkrZd"><option data-page-node-id="w8s2BuwhViptBWhCFFROBX" data-ed-base="手术室">手术室</option><option data-page-node-id="JUI0f9DroIe5YTbuUDQHsN" data-ed-base="内镜室">内镜室</option></select></td><td data-page-node-id="OHUeC19QcRwEE8d3D2Q9F8"><span class="op" data-page-node-id="6UPSPC2WjQjUhD2uUVF9fj"><a data-page-node-id="oKF1xy4WEbkcVbunTvdTjI" data-ed-base="生成条码">生成条码</a><a data-page-node-id="ZOmcCCPDpiwZiekaFQZru3" data-ed-base="打印条码">打印条码</a><a data-page-node-id="w3RXhNYRgBAY1UVH3AO2DY" data-ed-base="离体">离体</a><a data-page-node-id="cEpDRUJEqrLYdgoq0bY9z5" data-ed-base="冰冻">冰冻</a><a data-page-node-id="Y6U9qNPeW8SxBTJ9BYTSmE" data-ed-base="送检">送检</a><a data-page-node-id="EfZEcrA3Ux7580R1bT8opl" data-ed-base="接收">接收</a></span></td><td class="op" data-page-node-id="V1aXGWAdV2cAF2kh15IecE"><a class="del" onclick="delFlowRow(this)" data-page-node-id="obldmo2r9hEkuyevFvTALU" data-ed-base="删除">删除</a></td></tr>
+            <tr data-page-node-id="YBRBRNEU9Lx2vzP47eocVN"><td data-page-node-id="RCNycDRFi7uZHTwQTgXo6L" data-ed-base="3">3</td><td data-page-node-id="sfGWzicNJ80LdcF3j792jD"><select style="width:88%;height:26px" data-page-node-id="j39j3KrWgqoDhD6w2KdExA"><option data-page-node-id="ZjkH2gbWxRTYTesrt379ag" data-ed-base=""></option><option data-page-node-id="T5YeGWCUVBAn4uJCP8m5Rm" data-ed-base="内镜室">内镜室</option><option data-page-node-id="FBTHQEr14Fv0GxLsGUhip9" data-ed-base="手术室">手术室</option></select></td><td data-page-node-id="irAbaRFZgcc2SNnrpVzrUE"><span class="op" data-page-node-id="utH3vcEPwaO5qSR5zZ7X8r"><a data-page-node-id="Ph5uhOrtHzZJdrDK0aPRaB" data-ed-base="生成条码">生成条码</a><a data-page-node-id="UGiMpKtpUVq1x4duHwq7uH" data-ed-base="打印条码">打印条码</a><a data-page-node-id="mCBw2IbTC9idMir6Vm5VdC" data-ed-base="冰冻">冰冻</a><a data-page-node-id="odWJAp0kGtMYbEnEZOhC8A" data-ed-base="送检">送检</a><a data-page-node-id="vvgBs56gGnvaGH3qpzdAnK" data-ed-base="接收">接收</a></span></td><td class="op" data-page-node-id="F2WFGaowXB8rxa2mFSG5Oa"><a class="del" onclick="delFlowRow(this)" data-page-node-id="hJsIOgBD480ZTIQiNWDKna" data-ed-base="删除">删除</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ft" data-page-node-id="HmoOy29Z8rfsSHWLJP6VcE" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+
+  <!-- ============ 系统设置：标签模板配置 ============ -->
+  <div class="pg-sec" id="pgTpl" data-page-node-id="fwFX20nzTXcmm4nn6IOTMw">
+    <div class="page" data-page-node-id="kwFraiq8mPodHdpLw3F6oF">
+      <div class="crumb" data-page-node-id="2sEvCd5gBKkuYDeq4pu8ov">当前位置：系统设置 / <b data-page-node-id="oAfYwhbeJ8pyXjDTzbFeIT" data-ed-base="标签模板配置">标签模板配置</b></div>
+      <div class="conf-head" style="margin:14px 16px;border:1px solid #d9dee5" data-page-node-id="Ce4IAilVjTn6vQkRyYE9Nw">
+        <span class="t" data-page-node-id="Hnz5kfAvLqkeYpNgEieiXk" data-ed-base="标签模板配置">标签模板配置</span>
+        <span class="lb" style="font-size:13px" data-page-node-id="dPojkLvyHYxnNSMm8v7mJE" data-ed-base="模板类型：">模板类型：</span>
+        <select class="kw" style="width:120px" data-page-node-id="DCvGvhGPBr05flNGGfQtkh"><option data-page-node-id="pmH0tVohhEEyngzWcfHLU3" data-ed-base="条码标签">条码标签</option><option data-page-node-id="yd2KCWaiGaLwCKBrC9jTWe" data-ed-base="包裹标签">包裹标签</option></select>
+        <span class="sp" data-page-node-id="JZVQZsQGF7oQbuQDyaTwzN" data-ed-base=""></span>
+        <button class="inline-add" onclick="addTplRow()" data-page-node-id="PtPoyxmA9lkQaqKQywa3EB" data-ed-base="新增">新增</button>
+        <button class="inline-add" onclick="toast('模板配置已保存')" data-page-node-id="igbZ6hmVFrh72KmVECZXbd" data-ed-base="保存">保存</button>
+      </div>
+      <div class="tbl" style="margin:0 16px" data-page-node-id="sQjuZRgfkDKDKIg3ovJ0yq">
+        <table data-page-node-id="NaRfV8W8PAUPbWOISpoMn4">
+          <colgroup data-page-node-id="sHKXP0KPAqZn8gJ1lYlwvq"><col style="width:50px" data-page-node-id="BJkHZqzfxQ4W8IhAzyxHLe" data-ed-base=""><col data-page-node-id="YbL8kEtzZDCazFErHgAMvr" data-ed-base=""><col data-page-node-id="Dtovi7smSTtUJpxfNiE6Z4" data-ed-base=""><col data-page-node-id="2AKadkcJNgyVGLIxig3VwD" data-ed-base=""><col style="width:190px" data-page-node-id="rrMn2quTrPw5FkcN5UT8yH" data-ed-base=""></colgroup>
+          <thead data-page-node-id="AljaR5BAdnXqYU2OSDjzhW"><tr data-page-node-id="4FL7Wy7JBhqKYURQ8MSv3E"><th data-page-node-id="neDIWZCr5eFfiLIFCbGBsf" data-ed-base="序">序</th><th data-page-node-id="nC1MfRYLICinr1G2Xw66cA" data-ed-base="科室">科室</th><th data-page-node-id="CqDU1w1R8zNCJ3ccDGxGYg" data-ed-base="模板名称">模板名称</th><th data-page-node-id="ND3FcaLioHKxra4fJmLBIp" data-ed-base="模板说明">模板说明</th><th data-page-node-id="KXKIMBW7LPPjjYZPAymm7Q" data-ed-base="操作">操作</th></tr></thead>
+          <tbody id="tplBody" data-page-node-id="tEiCiMqvwLFQqcfE9PxtV9">
+            <tr data-page-node-id="kzwVw2wW0nEGQZJzEEuCKS"><td data-page-node-id="Sf0gxlOOqNwVktd4IbjPJB" data-ed-base="1">1</td><td data-page-node-id="92vI9rQpxu8pLOAjC3XLaU" data-ed-base="通用">通用</td><td data-page-node-id="5Fp1lwx9vGWOeI5kAdFDN8" data-ed-base="通用模板">通用模板</td><td data-page-node-id="X9jz472MmFXrt6UURGCqnq" data-ed-base="说明">说明</td><td class="op" data-page-node-id="M3DrZGrGO6UblgboGClC2I"><a onclick="toast('编辑模板：通用模板')" data-page-node-id="Dtcn5d13eSO42wcX1ti0s0" data-ed-base="编辑">编辑</a><a onclick="toast('进入模板设计器')" data-page-node-id="HYrIlQqMfkTHgSa2puR6Eq" data-ed-base="设计">设计</a><a onclick="toast('已导出模板')" data-page-node-id="fiwVScfCV4RkLKN1KvvTZl" data-ed-base="导出">导出</a> <a class="del" onclick="delTplRow(this)" data-page-node-id="yPWWKJXtBRlcWrkfs80GVu" data-ed-base="删除">删除</a></td></tr>
+            <tr data-page-node-id="OXWE58yKTsgsIArCq9MZFD"><td data-page-node-id="VU5Jby7PJ6CW9pD320aV5S" data-ed-base="2">2</td><td data-page-node-id="1nApyxWP3GEHJoMocAP6ma" data-ed-base="手术室">手术室</td><td data-page-node-id="PEJFDtpfT0vz9S36cbVg9P" data-ed-base="手术室专用模板">手术室专用模板</td><td data-page-node-id="9SaHft6XaoDK9t8l4YMx3y" data-ed-base="说明">说明</td><td class="op" data-page-node-id="BjyEh5u0c92pg2lfT4szTh"><a onclick="toast('编辑模板：手术室专用模板')" data-page-node-id="wqg52PpXmU6iY0EG2AuJwM" data-ed-base="编辑">编辑</a><a onclick="toast('进入模板设计器')" data-page-node-id="ozc0ZHPWUtxkdI6G9e3Kry" data-ed-base="设计">设计</a><a onclick="toast('已导出模板')" data-page-node-id="DUT8hY5PupmOOFPBQksUOU" data-ed-base="导出">导出</a> <a class="del" onclick="delTplRow(this)" data-page-node-id="NhTLfZh2HwD6Q6BqxIjmnC" data-ed-base="删除">删除</a></td></tr>
+            <tr data-page-node-id="FX91yZDGZhGjHrvNGqM0qz"><td data-page-node-id="1DfmplSr1RgZJsH1foFhlT" data-ed-base="3">3</td><td data-page-node-id="Lexxj9YtTeQcTQMBaEXxTl"><select style="width:88%;height:26px" data-page-node-id="d2hv0C8rFAhU8UknlIbUi5"><option data-page-node-id="oDfFeZeCTu385vhEDWCQop" data-ed-base=""></option><option data-page-node-id="a8pJ9CZOV9sfDr47pV5Czu" data-ed-base="内镜室">内镜室</option><option data-page-node-id="mXswUMNs0gKJzaZC67tFUK" data-ed-base="手术室">手术室</option></select></td><td data-page-node-id="BpdFVvTDf4oF2FB28YOgVH"><input style="width:88%;height:26px" data-page-node-id="6fXFqBB3EbGocuBCNLAxso" data-ed-base=""></td><td data-page-node-id="aAnPhTUTYwbs616DXlrn9l"><input style="width:88%;height:26px" data-page-node-id="FExPwJqr3OojJB7LntzqwT" data-ed-base=""></td><td class="op" data-page-node-id="MP9XLxLbHRWDpjREkpyJXz"><a onclick="toast('新增模板已保存')" data-page-node-id="9ZgrXMKWYZ78vN3DcABEg3" data-ed-base="保存">保存</a><a onclick="toast('进入模板设计器')" data-page-node-id="XKxe1dO9TjBwZP5Vp6M1Go" data-ed-base="设计">设计</a><a onclick="toast('已导出模板')" data-page-node-id="0FIOFkZF1RejIZwYjL3WnQ" data-ed-base="导出">导出</a> <a class="del" onclick="delTplRow(this)" data-page-node-id="kGIh1wmsWLH7nDqal3ELtr" data-ed-base="删除">删除</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note" style="margin:14px 16px" data-page-node-id="GeB4K22Zd3gQ0F6pzvjJST">
+        <b data-page-node-id="HSL4smiQFcxQBllc2JfRoB" data-ed-base="1.">1.</b>模板类型：支持条码标签、包裹标签。条码标签是指标本条码的标签；包裹标签为多个条码进行打包时，为包裹定义的包裹码标签；<br data-page-node-id="zCrcZw0nEx5wrFljrn9FOf" data-ed-base="">
+        <b data-page-node-id="GGBCW2kYQBBbcjZi3SeyBF" data-ed-base="2.">2.</b>设计、导出、删除逻辑同一号工程；<br data-page-node-id="oYajsuAtRWoZFKKLhb4FCV" data-ed-base="">
+        <b data-page-node-id="Lljr0uxEWpFgJgIt2SC6Az" data-ed-base="3.">3.</b>点击编辑时，可修改科室、模板名称、模板说明（对应一号工程小票模板-编辑功能）；
+      </div>
+      <div class="ft" data-page-node-id="cVPrhE8ENVDmQyAy3ipkU1" data-ed-base="版权所有：蓝网科技股份有限公司　　版本号：V1.0.10">版权所有：蓝网科技股份有限公司　　版本号：V1.0.10</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：病理申请单 ============ -->
+<div id="dlgMask" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:90" data-page-node-id="ZPhe1KNMbjM7FD5cYQJYNz">
+  <div style="width:760px;max-width:94vw;max-height:92vh;display:flex;flex-direction:column;background:#fff;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.25);overflow:hidden" data-page-node-id="UttbiS7Bu271vUz2wfyNJQ">
+    <div style="padding:16px 24px 6px;flex-shrink:0" data-page-node-id="BFC5sl6weISH1GQUpZ2MRP">
+      <span id="dlgTitle" style="font-size:16px;font-weight:700;color:#303133" data-page-node-id="G3sAw9AzwBF8b4bPBk2ddZ" data-ed-base="病理申请单">病理申请单</span>
+    </div>
+    <div style="flex:1;overflow:auto;padding:4px 24px 4px" data-page-node-id="cjXA3KxovdUqpDzff6K1MS">
+      <div class="sec-t" data-page-node-id="ej5oiRPuxRylqebnKSRopT"><span class="bar" data-page-node-id="eNCeFNb6lQOUvvAXkVKI4K" data-ed-base=""></span>病人信息</div>
+      <div class="fgrid" data-page-node-id="IFEKphVn71JmIrXw3azfVM">
+        <span class="fl" data-page-node-id="co9FJ7iPb8DCknQVeGYGu1"><label data-page-node-id="9cVVjtLbxlr88BOZEdMs8H"><i data-page-node-id="g7hGtC2APCU2IoUr8yuaXV" data-ed-base="*">*</i>姓名：</label><input id="fName" placeholder="请输入" data-page-node-id="SFXVyCM34mG09hfMIOi17P" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="N5OX4FTHO8B8Cc3U2xWMtQ"><label data-page-node-id="BB2sxLdSb7l5yaGEJ8a42W"><i data-page-node-id="T3Org9Adrp10ENe5GfDzHy" data-ed-base="*">*</i>年龄：</label><input id="fAge" placeholder="请输入" data-page-node-id="ryMCgSh79LGaaVaA7uLEnn" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="qn215GKqVkcP9h70tgjhDz"><label data-page-node-id="jk1unkEhwWE9WcUjocCgA8" data-ed-base="性别：">性别：</label><input id="fSex" placeholder="请输入" data-page-node-id="uNzijkxRNjseTKolPn8CJ8" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="w37GJhnMrdFX3ZOCDxeeAZ"><label data-page-node-id="LkGphTTIhzQ5xmFAj0GZd7"><i data-page-node-id="mpqGv1CMnX75e2FR14SHxS" data-ed-base="*">*</i>HIS单号：</label><input id="fHis" placeholder="请输入" data-page-node-id="fbtCjEgboZMevlY1clFOCm" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="UfBdkDVGe0Pq2etiBBElnX"><label data-page-node-id="0M1Fp432aahEHD211YFpq3" data-ed-base="门诊号：">门诊号：</label><input id="fOpd" placeholder="请输入" data-page-node-id="CjrCqa6f3HiaGFb6WFkyP8" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="bZtZBHoFWapyFm3vt1piIe"><label data-page-node-id="2Dgcvnyd1uXr7T7XYuYG8e" data-ed-base="住院号：">住院号：</label><input id="fIpd" placeholder="请输入" data-page-node-id="vWB9cD785VF6c5uNDcQM2W" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="DP4XGtVfOE8LsSNBxyYJ9r"><label data-page-node-id="nqXTjDlNRQ35e6bgC5I0eX" data-ed-base="床号：">床号：</label><input id="fBed" placeholder="请输入" data-page-node-id="webYmH9p8aVxJHrNZLKWGi" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="64fixo675hSYiF60ITEz6V"><label data-page-node-id="dmXPpQL7a3c3znJdmOjG2F" data-ed-base="病人来源：">病人来源：</label><select id="fSrc" data-page-node-id="pRwIrDgzPuEDx48XFtDk3M"><option data-page-node-id="baAl1RzMaQ0KhYwkKoJuYW" data-ed-base="门诊">门诊</option><option data-page-node-id="pc5GlqLi3F8fOHJTiKIId8" data-ed-base="住院">住院</option></select></span>
+        <span class="fl" data-page-node-id="kmsnl1i9S9geQqXhoHR5e0"><label data-page-node-id="q4zfHceeh4fcJp3WDh9Ctb" data-ed-base="医保号：">医保号：</label><input id="fIns" placeholder="请输入" data-page-node-id="EmSGzxeTPTSF2uTu2vL74P" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="5FAcx8q3XTP6Ou19JvjgDZ"><label data-page-node-id="kIDir0tn2TZLm3Bzl7aHBg" data-ed-base="手机号：">手机号：</label><input id="fTel" placeholder="请输入" data-page-node-id="9swQT3pv5fWDeIppylF5bz" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="aEUGfHDiJCQ6bYGFeHxB7p"><label data-page-node-id="LRgM9pWOKekkI4SuP4solb" data-ed-base="身份证号：">身份证号：</label><input id="fId" placeholder="请输入" data-page-node-id="JxC7xz9YQEB5RE6yLM4cJb" data-ed-base=""></span>
+      </div>
+      <div class="frow-line" data-page-node-id="OliJsDs2vaYmwuARLlLzQK"><label data-page-node-id="Smou3GFvILPqVnZ5VtNrCJ" data-ed-base="传染病：">传染病：</label>
+        <span class="rd" data-page-node-id="OwFVHBgr1z2LeuS8WthgYO"><span class="r on" data-page-node-id="nyHBZY0psC3aol2wvtolB2" data-ed-base=""></span>是</span>
+        <span class="rd" data-page-node-id="Py8f0VWVcR4DtnLSvGeE2N"><span class="r" data-page-node-id="ae7qhvneCtjCx1NSiFELif" data-ed-base=""></span>否</span>
+        <input style="flex:1;min-width:0" id="fInf" placeholder="请输入" data-page-node-id="E39OrMYDtiReReOPcM6add" data-ed-base="">
+      </div>
+      <div class="sec-t" style="margin-top:14px" data-page-node-id="sY3saFkY948zyhgQrWVJhD"><span class="bar" data-page-node-id="0lNTx1I6GE8iccAxPJw8a5" data-ed-base=""></span>检查信息</div>
+      <div class="fgrid" data-page-node-id="unGunA5SUhhZkPiOabtHlJ">
+        <span class="fl" data-page-node-id="XQQyZkg5rNxx6gIs6Bvj2M"><label data-page-node-id="jfJhm8B4W3II25amsEo6RC" data-ed-base="申请日期：">申请日期：</label><input id="fDate" placeholder="请输入" data-page-node-id="sOGvui09WLULamBshRmhZo" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="upqb32WehZgK0wPSOsmeir"><label data-page-node-id="qZ7bDHoWHF1qZXPOuEAzUX"><i data-page-node-id="KKQFhj38HA5P03ocBYiaN1" data-ed-base="*">*</i>申请科室：</label><input id="fDept" placeholder="请输入" data-page-node-id="p9uN63cHqYqjsl8f9Mfyf3" data-ed-base=""></span>
+        <span class="fl" data-page-node-id="5OLVZ96QSJV92nNZDL3a17"><label data-page-node-id="DAClBddvezoEnTJvWthbla"><i data-page-node-id="sbcucgWed0vB4EE4dvepSd" data-ed-base="*">*</i>申请医生：</label><input id="fDoc" placeholder="请输入" data-page-node-id="voL9NaGPGEQsmfUUM0mpkG" data-ed-base=""></span>
+      </div>
+      <div class="frow-line" data-page-node-id="AGPsZHdZGLIx8VKNlJqggC">
+        <label data-page-node-id="kknElQo7CjTVKKGH0CRdiV" data-ed-base="检查方法：">检查方法：</label>
+        <span class="rd" data-page-node-id="YVEIa3raBZpTyGdtBh3fJy"><span class="r" data-page-node-id="ftd9JjxNiz4puDACF0N6mR" data-ed-base=""></span>常规</span>
+        <span class="rd" data-page-node-id="gilxB92tWzEcfjvSW7cunJ"><span class="r" data-page-node-id="1eygwSXHyHlq64pB03zXlw" data-ed-base=""></span>冰冻</span>
+        <span class="fl" style="flex:1;margin-left:12px" data-page-node-id="bn69gVzS7fySlEOA3CiCaK"><label data-page-node-id="ylACQt9ODLo3UDEivmmEC4" data-ed-base="检查部位：">检查部位：</label><select id="fPart" data-page-node-id="cfsiMm71pZYc316ApAulXm"><option data-page-node-id="9USwuzvgY9oWdaKd2S99qE" data-ed-base=""></option><option data-page-node-id="mzFPYGTh9SrWiLiSGr0pgy" data-ed-base="胃">胃</option><option data-page-node-id="kS8K829nGIyqrOTuUITMGn" data-ed-base="肠">肠</option><option data-page-node-id="aLR6aFTZxQoRxo0g7GBYVH" data-ed-base="食管">食管</option></select></span>
+        <span class="fl" style="flex:1" data-page-node-id="V5I6L5o0c2WUDRN1uYHoXN"><label data-page-node-id="ymD2oVlD4ePWblqQ4XuHx0" data-ed-base="医嘱项目：">医嘱项目：</label><select id="fOrder" data-page-node-id="yO8mx6qzkammLA6k8Tj4Pn"><option data-page-node-id="pRlNeXx1S4v9ytS7B4mCo0" data-ed-base=""></option><option data-page-node-id="gHCFH2UIkqeBCyFuNd6B4E" data-ed-base="病理活体组织检查">病理活体组织检查</option><option data-page-node-id="GrvQmVkgEN757VsrRDJCcs" data-ed-base="冰冻切片检查">冰冻切片检查</option></select></span>
+      </div>
+      <div class="frow-line ta" data-page-node-id="SMcnkjvybcIrm6n8LHOqOu"><label data-page-node-id="zZupdcRlqVy5bi9WKFA1mA" data-ed-base="临床诊断：">临床诊断：</label><textarea id="fDiag" placeholder="请输入" data-ed-base=""></textarea></div>
+      <div class="frow-line ta" data-page-node-id="C5irD4QbZ4kKRfus28ZG3k"><label data-page-node-id="yR0bOcUaXEN9ghorxvGQ9O" data-ed-base="备注：">备注：</label><textarea id="fMemo" placeholder="请输入" data-ed-base=""></textarea></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px" data-page-node-id="HyQKOFSvepTNzNQObtrUW4">
+        <div class="sec-t" style="margin:0" data-page-node-id="OzmFhDqbzdwEFwtKjzvLkn"><span class="bar" data-page-node-id="jO2KjUtaJ0EeB7czqKs5Cv" data-ed-base=""></span>标本信息</div>
+        <button class="addrow" onclick="addSpecRow()" data-page-node-id="pw4r1Q8wAK5zmZjvrWbmGz" data-ed-base="添加行">添加行</button>
+      </div>
+      <div class="sp-tbl" data-page-node-id="H3xGirlfkTQR8Y0cB1Xain">
+        <table data-page-node-id="r4K13X3xgaDHBi8L4nlziS">
+          <colgroup data-page-node-id="NnND0xMYXfts0kkzXCDVlm"><col style="width:44px" data-page-node-id="UyCtT9WIrc9WaFkXiy7MIf" data-ed-base=""><col data-page-node-id="CSPAr6YHJvUfZ5ys1rTp0t" data-ed-base=""><col data-page-node-id="JoxveIY9rNEqSQxMehR6J6" data-ed-base=""><col style="width:150px" data-page-node-id="ei92jVhnm33iaZz48iPfEm" data-ed-base=""><col style="width:64px" data-page-node-id="JDdHvKC6chB0kjMOiTFAXv" data-ed-base=""></colgroup>
+          <thead data-page-node-id="ctyw09nrgyDoSGQcRjHlCr"><tr data-page-node-id="zOyqWWCFHH2EVRNa6Trots"><th data-page-node-id="a6IqBEmA6q2o8vOtMFxRHP" data-ed-base=""></th><th data-page-node-id="eft3LveGrnXzMFXrrwLgZV" data-ed-base="标本名称">标本名称</th><th data-page-node-id="MDOCf1SvnSbHtTgbXbL1Zl" data-ed-base="标本部位">标本部位</th><th data-page-node-id="zg2pSAdJ5P5fwDDy4ouRGo" data-ed-base="固定液">固定液</th><th data-page-node-id="nzei2RSvwoOkhDxyw0D1AH" data-ed-base="操作">操作</th></tr></thead>
+          <tbody id="specBody" data-page-node-id="Jws7qmay4lK78dGVumBlZ4" data-ed-base=""></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:12px;padding:14px 20px 18px;flex-shrink:0" data-page-node-id="WPAKBAN6qeHBbS2fspsQMM">
+      <button class="d-btn" style="min-width:72px" onclick="closeDlg()" data-page-node-id="cIyco6AmPtatVUem7jgVvQ" data-ed-base="取消">取消</button>
+      <button class="d-btn primary" style="min-width:72px" onclick="saveForm()" data-page-node-id="RZJJtndcPgNmGOkqMz77tv" data-ed-base="确定">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：查看申请单 ============ -->
+<div id="prevMask" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:92" data-page-node-id="es9lXjLXPnh9vuqKk35uA3">
+  <div style="width:860px;max-width:94vw;height:88vh;display:flex;flex-direction:column;background:#fff;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.25);overflow:hidden" data-page-node-id="Sgt2Rsp3kW44ohO367Wwmj">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;flex-shrink:0" data-page-node-id="2yi3YiHSQ1TYpAoKQQ0YkQ">
+      <span style="font-size:15px;font-weight:700;color:#303133" data-page-node-id="jEJ9wowNGubWgTWCEzyAzu" data-ed-base="查看申请单">查看申请单</span>
+      <span onclick="closePreview()" style="cursor:pointer;color:#909399;font-size:18px;line-height:1" data-page-node-id="z6UGusLsCKxcaz9Fg7yBnJ" data-ed-base="✕">✕</span>
+    </div>
+    <div style="display:flex;align-items:center;background:#3a3a3a;color:#fff;height:44px;padding:0 16px;flex-shrink:0;gap:14px" data-page-node-id="xDWIo7WGCNcxlqGczC97et">
+      <span id="pvTitle" style="font-size:13px;margin-right:auto" data-page-node-id="k1dYfenXFT71licwG1stio" data-ed-base=""></span>
+      <span class="pv-i" title="适应窗口" data-page-node-id="6FNTMLcNEcfiXTkfAXJKpH" data-ed-base="⛶">⛶</span>
+      <span class="pv-i" title="缩小" data-page-node-id="b15F6WQdRLQ2DZJNBfQhHM" data-ed-base="🔍－">🔍－</span>
+      <span id="pvZoom" style="font-size:13px" data-page-node-id="BzSw1NbDAswEj0JLq0M3st" data-ed-base="100%">100%</span>
+      <span class="pv-i" title="放大" data-page-node-id="2x3mpx68MDvrRJ6CsX3BHc" data-ed-base="🔍＋">🔍＋</span>
+      <span class="pv-i" title="下载" data-page-node-id="NQmdrCFADAjisPetCGbCnl" data-ed-base="⭳">⭳</span>
+      <span class="pv-i" title="打印" data-page-node-id="xNt2pSBOg5kgU2XHDOLmfo" data-ed-base="🖨">🖨</span>
+      <span class="pv-i" title="刷新" data-page-node-id="2oYBHcWHJlixgAdZTbNumj" data-ed-base="⟳">⟳</span>
+    </div>
+    <div style="flex:1;overflow:auto;background:#5a5a5a;padding:18px 0" data-page-node-id="BMS3pG2lSvNAjSQGtvJF4i">
+      <div style="width:640px;margin:0 auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.35);padding:34px 40px 26px;font-family:'SimSun','宋体',serif;color:#000" data-page-node-id="IjzQXeFDTCZk3e6TJC1QJZ">
+        <div style="text-align:center;font-size:20px;letter-spacing:6px;margin-bottom:22px" data-page-node-id="gQpjfX754ILnXVHWCHxzTB" data-ed-base="病理申请单">病理申请单</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px" data-page-node-id="Lp0LM7e0IZwmUKqSVeZKgq">
+          <colgroup data-page-node-id="7rfC18D50Q0HGP8r4dBcsH"><col style="width:25%" data-page-node-id="HGWvpAAv3iEviZIsirNIAe" data-ed-base=""><col style="width:25%" data-page-node-id="gLjFC1lOcOmfPCWcagnBaO" data-ed-base=""><col style="width:25%" data-page-node-id="WF6K1zThjUdglNwHGtqRxO" data-ed-base=""><col style="width:25%" data-page-node-id="hEXYZ7SJoTiDM8dKk02VMY" data-ed-base=""></colgroup>
+          <tbody data-page-node-id="thHvB0zIbQpOXF9vf5ssXB">
+            <tr data-page-node-id="Om3AcSHYDm7BwByJQ0L1DC">
+              <td class="pv-cell" data-page-node-id="e9wf4boV1jhNX1lQvgrtzH">姓名：<b id="pvName" data-page-node-id="gjr5Wv6PN1xFX8XHT6X5j8" data-ed-base=""></b></td>
+              <td class="pv-cell" data-page-node-id="ynZpjc6dgcfbIJUXfTyfo7">性别：<b id="pvSex" data-page-node-id="YzVWnu4LH5LhP0UVv9QHCd" data-ed-base=""></b></td>
+              <td class="pv-cell" data-page-node-id="HuErLuAmMAjv0TTFxmQupC">年龄：<b id="pvAge" data-page-node-id="FenqFDyaOukBEJ9DBmf4m9" data-ed-base=""></b></td>
+              <td class="pv-cell" data-page-node-id="IKDUxIiIQW074CEpkbfRWN" data-ed-base="联系电话：无">联系电话：无</td>
+            </tr>
+            <tr data-page-node-id="BSaCoBejBiDsTr8Slacq7l">
+              <td class="pv-cell" data-page-node-id="DXVlSRlRvHsOME9tfWJzRI" data-ed-base="患者ID：无">患者ID：无</td>
+              <td class="pv-cell" data-page-node-id="Ia9HkHzDNAgC5D5CVrifC1" data-ed-base="门诊/住院/体检号：无">门诊/住院/体检号：无</td>
+              <td class="pv-cell" data-page-node-id="Iiqg8rBTsIMooBdD3TPAUs" data-ed-base="病区：无">病区：无</td>
+              <td class="pv-cell" data-page-node-id="EOdQYAWtxoWXC0GD24LGV0" data-ed-base="联系地址：无">联系地址：无</td>
+            </tr>
+            <tr data-page-node-id="P78gAK0GGqxn2ooo0p9W0I">
+              <td class="pv-cell" data-page-node-id="cq5vGGArrOiHqr6kSUasYc" data-ed-base="床号：无">床号：无</td>
+              <td class="pv-cell" data-page-node-id="3E6AhU5E66vcJm8N6Z9i1u" data-ed-base="申请科室：病理科">申请科室：病理科</td>
+              <td class="pv-cell" colspan="2" data-page-node-id="DKVvaYwXpB7pUxYcI4BUC6" data-ed-base=""></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pv-sec" data-page-node-id="y73xsuy67kKcUc0fFOHWHl" data-ed-base="镜下所见：">镜下所见：</div>
+        <div class="pv-sec" data-page-node-id="1b5BVQHQC8jmTCsVsnLeaS" data-ed-base="镜下诊断：">镜下诊断：</div>
+        <div class="pv-line" data-page-node-id="CeBcrdhNd319rrsl1FCFtp" data-ed-base="建议：无">建议：无</div>
+        <div class="pv-line" data-page-node-id="HTjLNzjHydw9iVVlRtDVLb" data-ed-base="活检部位：胃窦">活检部位：胃窦</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px" data-page-node-id="aVjiQDfOGQWyEshPSlbcVf">
+          <colgroup data-page-node-id="ynfepaQMj4C7ckIcIwAz3Q"><col style="width:34%" data-page-node-id="jCABpAlCcACqK2NqU9m0Zd" data-ed-base=""><col style="width:33%" data-page-node-id="WUk08YJfYA9lPRhRCOQENT" data-ed-base=""><col style="width:33%" data-page-node-id="pmH8pEjMHHRFwvaF7V7KUD" data-ed-base=""></colgroup>
+          <tbody data-page-node-id="jlTO7e3JK6iHDz2md7bk7N">
+            <tr data-page-node-id="XanSRUI1LAwWL8uS9XeFgn"><td class="pv-cell" data-page-node-id="aKASoGvESuJf1JNkedN7kD" data-ed-base="离体时间：12:31:00">离体时间：12:31:00</td><td class="pv-cell" data-page-node-id="q1EAepJEGbWktoTUNZpIp3" data-ed-base="固定时间：12:36:00">固定时间：12:36:00</td><td class="pv-cell" data-page-node-id="GICuCPnwRPH7QT09TZtuAd" data-ed-base="送检医生：已取消该字段">送检医生：已取消该字段</td></tr>
+            <tr data-page-node-id="3FaP7cQcB1EA8huFFFIXqq"><td class="pv-cell" data-page-node-id="gMKHga38LqnzRgnvHN8kyu" data-ed-base="总件数：1">总件数：1</td><td class="pv-cell" data-page-node-id="4GXd5KbOTSU5nu6JVBTs5X" data-ed-base="备注：无">备注：无</td><td class="pv-cell" data-page-node-id="3RZ2tRdf4aLApd7WFk2eGx">日期：<span id="pvDate" data-page-node-id="EkxYbx8yyX8b4OwzrsPrzR" data-ed-base="2026-10-12">2026-10-12</span></td></tr>
+            <tr data-page-node-id="61FAD6rbtmBwiPbAB1BF2Y"><td class="pv-cell" data-page-node-id="fyRVgTLE4uCKD1e2cHux1I" data-ed-base="报告医生：无">报告医生：无</td><td class="pv-cell" data-page-node-id="tTDte9A4ItAU0EQpa5D2Tz" data-ed-base="检查医生：杨松">检查医生：杨松</td><td class="pv-cell" data-page-node-id="FK4BHaamIeaIOcTNhikgcE" data-ed-base="打印人：chh">打印人：chh</td></tr>
+          </tbody>
+        </table>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:2px" data-page-node-id="Bj7YtM2wXv2HeTp8LH8tMq">
+          <tbody data-page-node-id="nSA2mz2Q2Kgkr83L6Em6TE">
+            <tr data-page-node-id="K4BYsPYIPDiFLOLu0LrmLS">
+              <td class="pv-cell" style="width:34%;height:88px;text-align:center;vertical-align:bottom" data-page-node-id="bJSyHdRJIiU3dBo6qUsdYC" data-ed-base="该检测细">该检测细</td>
+              <td class="pv-cell" style="vertical-align:top;padding:8px 10px;color:#555;line-height:1.9" data-page-node-id="eN5msbrNzvdfElM5TKhJeo">
+                1、请详细填写申请单各项项目<br data-page-node-id="73CMxcttCrIbAVuCQpcXHb" data-ed-base="">
+                2、标本应迅速固定，以防自溶、腐烂<br data-page-node-id="HAn3ak0HN7jADoVSuD1bCs" data-ed-base="">
+                3、组织取材部门及人员及然号
+              </td>
+              <td class="pv-cell" data-page-node-id="cqKK16Cm2WnqnlyH2iHRT3" data-ed-base=""></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：标本信息（条码打印-查看） ============ -->
+<div id="specMask" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:93" data-page-node-id="KAaSG2nwWZBxkDFuvQswh9">
+  <div style="width:560px;background:#fff;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:16px 22px 14px" data-page-node-id="1o9LBCxY1uTEmQLNGqYEJt">
+    <div style="font-size:15px;font-weight:700;color:#303133;margin-bottom:12px" data-page-node-id="JF2Rxax9g6O6Lm6NyE4XRJ" data-ed-base="标本信息">标本信息</div>
+    <div style="font-size:13px;font-weight:700;color:#303133;border-left:3px solid #1e9fff;padding-left:8px;margin-bottom:10px" data-page-node-id="v3cUro361ygddQq8yuTYMu" data-ed-base="患者信息">患者信息</div>
+    <div style="font-size:13px;color:#303133;margin:0 0 14px 11px;display:flex;flex-wrap:wrap;gap:6px 26px" data-page-node-id="PvTq6Gayt1qtzqncgnJaDK">
+      <span data-page-node-id="i32T4C3yb6p7EGQLONsHAr" data-ed-base="姓名：张小花">姓名：张小花</span><span data-page-node-id="lRxQvy1JCdx40ZUajmO0EE" data-ed-base="性别：女">性别：女</span><span data-page-node-id="DOpPpC1YXICZw7ptqdDMeQ" data-ed-base="来源：门诊">来源：门诊</span><span data-page-node-id="dGCE9hI0YZPfM22FDhDGIA" data-ed-base="门诊/住院号/体检：0668">门诊/住院号/体检：0668</span><span data-page-node-id="gwrV72SavAsFt8BSjShYDX" data-ed-base="申请科室：内镜科">申请科室：内镜科</span>
+    </div>
+    <div style="font-size:13px;font-weight:700;color:#303133;border-left:3px solid #1e9fff;padding-left:8px;margin-bottom:10px" data-page-node-id="0vVndXVDBGJxx13hskKDoe" data-ed-base="标本列表">标本列表</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px" data-page-node-id="nYteThxJC2QlKAfmr4eo2S">
+      <button class="d-btn primary" style="min-width:60px;height:26px;font-size:12px" onclick="toast('新增标本行')" data-page-node-id="WHn9E6kicyIomOvMwNx0Kn" data-ed-base="新增">新增</button>
+      <button class="d-btn" style="min-width:60px;height:26px;font-size:12px;background:#f56c6c;border-color:#f56c6c;color:#fff" onclick="toast('删除所选标本')" data-page-node-id="CDmmwKpWlVHXm7D5HSPFIP" data-ed-base="删除">删除</button>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px" data-page-node-id="PCji2dCRsguSL5eTHreXtA">
+      <thead data-page-node-id="EQQSXgFBYRyr3HLpxhpkmx">
+        <tr style="background:#f5f7fa;color:#606266" data-page-node-id="rwkMSTwsukCcCThptNQSDH">
+          <th style="border:1px solid #dcdfe6;padding:6px 4px;width:32px" data-page-node-id="CLNzEHDezqSw0QVWz5GuY2"><input type="checkbox" class="chk" data-page-node-id="hpCDSPODH08jt8GxtYl0q3" data-ed-base=""></th>
+          <th style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="5tHdszyx32WMQtVPMzN9Ya" data-ed-base="标本名称">标本名称</th>
+          <th style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="eSxMF6IzVcjhGctMzGVt8Q" data-ed-base="标本部位">标本部位</th>
+          <th style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="QABBmQsQvxcOWQgSlbORZG" data-ed-base="标本数">标本数</th>
+          <th style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="trxWf2uIFFe1SfvsjmYY8m" data-ed-base="单位">单位</th>
+          <th style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="IS9wvLX7X8N32R4ZwGqISy" data-ed-base="采样人">采样人</th>
+          <th style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="iuDbCxY1Fi5ZyZ1mCREwU7" data-ed-base="采样科室">采样科室</th>
+          <th style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="dvNnpBCqxHxj02ddaHILLL" data-ed-base="备注">备注</th>
+          <th style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="uG6KgAXn0f0CEXHEMtykEJ" data-ed-base="操作">操作</th>
+        </tr>
+      </thead>
+      <tbody style="text-align:center;color:#303133" data-page-node-id="gNEduBOkSdnVISLPUwJVTY">
+        <tr data-page-node-id="MkulGkr58mKdbfuoPcFQyd">
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="u7C0aWFMG7SHNMezmjyuJ9"><input type="checkbox" class="chk" data-page-node-id="FUHPKFr04eLEu6UQj4v2uL" data-ed-base=""></td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="aPpScsQ4WVT9rGMBEXlsvs" data-ed-base="胃息肉">胃息肉</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="EgbbIKFqkqg3E2UPGMbzWY" data-ed-base="胃底">胃底</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="2lTkSkJ2BrOM5EafjLzer7" data-ed-base="2">2</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="SNdVxeoXGnQEwSPWg7SQmS" data-ed-base="块">块</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="qimeGvWL1eNtMYcn3DNgTH" data-ed-base="张护士">张护士</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="5YIyoeVSdWpcT2gEHjwGSE" data-ed-base="内镜室">内镜室</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="lhsnscxNTc6FDrcSdEhAdW" data-ed-base="备注文本">备注文本</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="Wu330gVIkGkhqiV4Nt3aTF"><a style="color:#1e9fff;cursor:pointer" onclick="toast('修改标本')" data-page-node-id="MAoxAQTvpDhVk7mHTQd19a" data-ed-base="修改">修改</a></td>
+        </tr>
+        <tr data-page-node-id="nCfvlX4t4fnplIAJmC1Vjw">
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="5B02A0P8pEcFk2RHpPzSm0"><input type="checkbox" class="chk" data-page-node-id="2xs75r88bTz09IiLmBjDT2" data-ed-base=""></td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="4zKyEuNOwqQfFW4NO9IW6v" data-ed-base="胃息肉">胃息肉</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="IlbnlhwapUFxJ9FvCn1456" data-ed-base="胃底">胃底</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="D6LYCZ65sFteGPBY0O7CsH" data-ed-base="1">1</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="y7tuvtZbNHHFny3b4BCT0s" data-ed-base="个">个</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="JslB0tBBjkI7aGFj9ZL1k1" data-ed-base="张护士">张护士</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="Q1qm1DcwstT1RY65EB4cCu" data-ed-base="内镜室">内镜室</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="Ar0D37wk3GZ8gEE6GC18G1" data-ed-base="备注文本">备注文本</td>
+          <td style="border:1px solid #dcdfe6;padding:6px 4px" data-page-node-id="pBJe9Sd1cBNtHodWGXo20b"><a style="color:#1e9fff;cursor:pointer" onclick="toast('生成标本条码')" data-page-node-id="2HXfUPOTeORYicEEhDefNQ" data-ed-base="生成条码">生成条码</a></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px" data-page-node-id="9FbvZu30833yeKvuqsUs7d">
+      <button class="btn-q" style="min-width:64px" onclick="toast('打印任务已发送')" data-page-node-id="PsyQ8oESiYRJ8WpVN1bW8k" data-ed-base="打印">打印</button>
+      <div style="display:flex;gap:10px" data-page-node-id="n9oK9kU9lJ1GRaeXLSn505">
+        <button class="d-btn" style="min-width:64px" onclick="closeSpec()" data-page-node-id="aSQYnSWEvYObyDsAYJvCOe" data-ed-base="取消">取消</button>
+        <button class="d-btn primary" style="min-width:64px" onclick="closeSpec();toast('标本信息已保存')" data-page-node-id="mTJf1CLriO5oViz3iXM5bZ" data-ed-base="保存">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：删除确认 ============ -->
+<div id="delMask" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:95" data-page-node-id="Ci3xAP1YFJChbLtYhzTF9V">
+  <div style="width:380px;background:#fff;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:18px 22px 16px" data-page-node-id="2Njg0TurPuSlwIs44aCvzY">
+    <div style="font-size:15px;font-weight:700;color:#303133;margin-bottom:12px" data-page-node-id="wpNxQaR8ECwPXgDVEBBdww" data-ed-base="提示">提示</div>
+    <div style="font-size:14px;color:#606266;margin-bottom:20px" data-page-node-id="1QZy3NwEEPJqXQM01NXghT" data-ed-base="确认删除该申请单？">确认删除该申请单？</div>
+    <div style="display:flex;justify-content:flex-end;gap:10px" data-page-node-id="vncnAbhfCu9OllZuzo98eJ">
+      <button class="d-btn" style="min-width:64px" onclick="closeDel()" data-page-node-id="xoDrt23d4k6ISmVYdlnKDU" data-ed-base="取消">取消</button>
+      <button class="d-btn primary" style="min-width:64px" onclick="confirmDel()" data-page-node-id="VPtX8qU2KmCpeFjGtY2XWp" data-ed-base="确定">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：退回确认 ============ -->
+<div id="backMask" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:94" data-page-node-id="V5kfIrj9PeMTxDsmYAZued">
+  <div style="width:420px;background:#fff;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:18px 22px 16px" data-page-node-id="rskbYiEbQXKTlrM6AYyZDN">
+    <div style="font-size:15px;font-weight:700;color:#303133;margin-bottom:14px" data-page-node-id="M5DdL3KmqPVHACFQJyutfg" data-ed-base="退回确认">退回确认</div>
+    <div class="frow-line" data-page-node-id="6zEyEctHI8oKRX13ulJuUc"><label class="req" data-page-node-id="OCviuvecZrXbpRdJVderA4" data-ed-base="退回原因：">退回原因：</label><input placeholder="请输入退回原因" data-page-node-id="DVKBfvJAkpfELKTYfJT2m0" data-ed-base=""></div>
+    <div style="font-size:13px;color:#606266;margin-bottom:18px" data-page-node-id="wmGdhQQ48UfpAa2YCQ8qgY" data-ed-base="确认退回当前选择的标本？">确认退回当前选择的标本？</div>
+    <div style="display:flex;justify-content:flex-end;gap:10px" data-page-node-id="eHHIlMFa16a3hcLjzhWucg">
+      <button class="d-btn" style="min-width:64px" onclick="closeBack()" data-page-node-id="7BGkBmGuzc6WoHSWfbbovQ" data-ed-base="取消">取消</button>
+      <button class="d-btn primary" style="min-width:64px" onclick="doBack()" data-page-node-id="AJL6PmnenjdtJg5XNrpc1P" data-ed-base="确认">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：一键打包确认 ============ -->
+<div id="pkAllMask" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:96" data-page-node-id="FDz69qpeN0usBiV0JpaIEK">
+  <div style="width:400px;background:#fff;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:18px 22px 16px" data-page-node-id="outcsz5m5lhRkBaDB0dpA3">
+    <div style="font-size:15px;font-weight:700;color:#303133;margin-bottom:12px" data-page-node-id="nAVNUBSc9eRsIrXkn6t7X4" data-ed-base="提示">提示</div>
+    <div style="font-size:14px;color:#606266;margin-bottom:20px" data-page-node-id="vtWYzoDy8ksuHdSYfsMJlW">已选中<span style="color:#e6a23c;padding:0 4px" data-page-node-id="RGfjGLvowfKhFEED0xpb8t" data-ed-base="10">10</span>条标本，确定一键打包？</div>
+    <div style="display:flex;justify-content:flex-end;gap:10px" data-page-node-id="2mXPQxXQv2xrXkgsMBhHQ3">
+      <button class="d-btn" style="min-width:64px" onclick="closePkAll()" data-page-node-id="mINSQlgHvWVc6yE0ZkyGwZ" data-ed-base="取消">取消</button>
+      <button class="d-btn primary" style="min-width:64px" onclick="confirmPkAll()" data-page-node-id="W7AUHk7ymoG6kDPnhLgmy2" data-ed-base="确定">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：加入包裹 ============ -->
+<div id="pkWrapMask" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:96" data-page-node-id="iunV2EnRB7BZztyYHTlvMc">
+  <div style="width:400px;background:#fff;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:18px 22px 16px" data-page-node-id="pZLDkxMghbWSEeK2J07m1H">
+    <div style="font-size:15px;font-weight:700;color:#303133;margin-bottom:12px" data-page-node-id="8BUCy5534AOMIEWnOb0aH3" data-ed-base="提示">提示</div>
+    <div style="font-size:14px;color:#606266;margin-bottom:12px" data-page-node-id="GZ4G3g2hzJWXSxhpqLJx2d">已选中<span style="color:#e6a23c;padding:0 4px" data-page-node-id="ohjJA9ZDlDYpV0oTqx7FK6" data-ed-base="10">10</span>条标本，请选择要加入的包裹</div>
+    <select id="pkWrapSel" style="width:220px;height:30px;border:1px solid #DCDFE6;border-radius:3px;font-size:13px;color:#606266;padding:0 8px;margin-bottom:18px" data-page-node-id="pToLCEn5pvcOOu3BrlAafK">
+      <option data-page-node-id="wVEARW0P3ie8DnvDbOfeCZ" data-ed-base="选择已有包裹号">选择已有包裹号</option>
+      <option data-page-node-id="ogde7koPs4cFAri4UUaLkP" data-ed-base="300012">300012</option>
+      <option data-page-node-id="8Z2sRRssZOuBH7yhhsC6oz" data-ed-base="300013">300013</option>
+      <option data-page-node-id="6RDIIKPa8qDfu0QHjRYJ2P" data-ed-base="300014">300014</option>
+    </select>
+    <div style="display:flex;justify-content:flex-end;gap:10px" data-page-node-id="4nDFcXJ4ZukO2KYt7h1iey">
+      <button class="d-btn" style="min-width:64px" onclick="closePkWrap()" data-page-node-id="tktjeX5G5GuxNUwJL6ZPu8" data-ed-base="取消">取消</button>
+      <button class="d-btn primary" style="min-width:64px" onclick="confirmPkWrap()" data-page-node-id="mWEZ9AvwHTGVuFNTmK93Et" data-ed-base="确定">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：移出包裹确认 ============ -->
+<div id="pkOutMask" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:96" data-page-node-id="Zxm6FUs8P3zBfhmzQE2cSt">
+  <div style="width:400px;background:#fff;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:18px 22px 16px" data-page-node-id="nvqZPTkSXpnNPg0sRMQ6RT">
+    <div style="font-size:15px;font-weight:700;color:#303133;margin-bottom:12px" data-page-node-id="DP3adeEHPZfyGlajxgzbd6" data-ed-base="提示">提示</div>
+    <div style="font-size:14px;color:#606266;margin-bottom:20px" data-page-node-id="xZtkoIcWmvqy41bqxs7kDa">已选中<span style="color:#e6a23c;padding:0 4px" data-page-node-id="QXlOxFdJ4vpAN1ne1HxaSC" data-ed-base="10">10</span>条标本，确定移出包裹？</div>
+    <div style="display:flex;justify-content:flex-end;gap:10px" data-page-node-id="pxhdXImCzPRiZLzigpC6JS">
+      <button class="d-btn" style="min-width:64px" onclick="closePkOut()" data-page-node-id="2vZFNziyZD1YAVqcKxYx4s" data-ed-base="取消">取消</button>
+      <button class="d-btn primary" style="min-width:64px" onclick="confirmPkOut()" data-page-node-id="RrWFwCCYPvJElQK8DHt6AO" data-ed-base="确定">确定</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-10px);background:#f0f9eb;border:1px solid #e1f3d8;color:#67c23a;padding:9px 18px;border-radius:4px;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:200" data-page-node-id="6ZPGlVYsktDsRVUoTKMgBp" data-ed-base=""></div>
+
+<script>
+var ROWS = [
+  {name:'张小花',sex:'女',age:'32',his:'2520000315',chk:'2160001',src:'门诊'},
+  {name:'李小花',sex:'女',age:'32',his:'2520000316',chk:'2160002',src:'门诊'}
+];
+var delIdx = -1, tipTimer = null;
+function $(id){ return document.getElementById(id); }
+function toast(msg){
+  var t = $('toast');
+  t.textContent = msg;
+  t.style.opacity = 1; t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(tipTimer);
+  tipTimer = setTimeout(function(){ t.style.opacity = 0; t.style.transform = 'translateX(-50%) translateY(-10px)'; }, 2000);
+}
+function setv(id, v){ $(id).value = v || ''; }
+
+/* ============ 一级/二级菜单切换 ============ */
+document.querySelectorAll('#nav .tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    var grp = this.dataset.menu;
+    document.querySelectorAll('#nav .tab').forEach(function(x){ x.classList.remove('on'); });
+    this.classList.add('on');
+    document.querySelectorAll('#subbar .sub-grp').forEach(function(g){ g.style.display = 'none'; g.classList.remove('on'); });
+    var sg = document.getElementById(grp);
+    sg.style.display = 'flex'; sg.classList.add('on');
+    /* 一级菜单点击时回到该组的默认页面 */
+    switchPage(this.dataset.default);
+  });
+});
+document.querySelectorAll('#subbar .sub').forEach(function(s){
+  s.addEventListener('click', function(){ switchPage(this.dataset.pg); });
+});
+function switchPage(pg){
+  document.querySelectorAll('.pg-sec').forEach(function(s){ s.classList.remove('on'); });
+  $(pg).classList.add('on');
+  document.querySelectorAll('#subbar .sub').forEach(function(x){
+    x.classList.toggle('on', x.dataset.pg === pg);
+  });
+  $('main').scrollTop = 0;
+}
+
+/* ============ 模板/流程行操作 ============ */
+function addTplRow(bodyId){
+  var tb = $(bodyId || 'tplBody');
+  tb.insertAdjacentHTML('beforeend',
+    '<tr><td>' + (tb.children.length + 1) + '</td><td><select style="width:88%;height:26px"><option></option><option>内镜室</option><option>手术室</option></select></td>' +
+    '<td><input style="width:88%;height:26px"></td><td><input style="width:88%;height:26px"></td>' +
+    '<td class="op"><a onclick="toast(\'新增模板已保存\')">保存</a><a onclick="toast(\'进入模板设计器\')">设计</a><a onclick="toast(\'已导出模板\')">导出</a> <a class="del" onclick="delTplRow(this)">删除</a></td></tr>');
+}
+function delTplRow(a){ var tb = a.closest('tbody'); a.closest('tr').remove(); renumRows(tb); }
+function addFlowRow(bodyId){
+  var tb = $(bodyId || 'flowBody');
+  tb.insertAdjacentHTML('beforeend',
+    '<tr><td>' + (tb.children.length + 1) + '</td><td><select style="width:88%;height:26px"><option></option><option>内镜室</option><option>手术室</option></select></td>' +
+    '<td><span class="op"><a>生成条码</a><a>打印条码</a><a>冰冻</a><a>送检</a><a>接收</a></span></td>' +
+    '<td class="op"><a class="del" onclick="delFlowRow(this)">删除</a></td></tr>');
+}
+function delFlowRow(a){ var tb = a.closest('tbody'); a.closest('tr').remove(); renumRows(tb); }
+function renumRows(tb){
+  tb.querySelectorAll('tr').forEach(function(tr, i){
+    var first = tr.children[0];
+    if(/^\d+$/.test(first.textContent.trim())) first.textContent = i + 1;
+  });
+}
+
+/* ============ 病理申请：弹窗逻辑 ============ */
+function openForm(mode, i){
+  if(mode === 'preview'){ openPreview(i); return; }
+  var isAdd = mode === 'add';
+  $('dlgTitle').textContent = isAdd ? '新增申请' : '病理申请单';
+  var d = (typeof i === 'number') ? ROWS[i] : null;
+  setv('fName', d ? d.name : ''); setv('fAge', d ? d.age : ''); setv('fSex', d ? d.sex : '');
+  setv('fHis', d ? d.his : ''); setv('fOpd', ''); setv('fIpd', '');
+  setv('fBed', ''); $('fSrc').value = d ? (d.src || '门诊') : '门诊'; setv('fIns', '');
+  setv('fTel', ''); setv('fId', ''); setv('fInf', '');
+  setv('fDate', d && d.his ? '2026-10-15' : ''); setv('fDept', d ? '病理科' : ''); setv('fDoc', d ? '李医生' : '');
+  $('fPart').selectedIndex = 0; $('fOrder').selectedIndex = 0;
+  setv('fDiag', ''); setv('fMemo', '');
+  renderSpec(2);
+  var ro = (mode === 'preview');
+  var fields = ['fName','fAge','fSex','fHis','fOpd','fIpd','fBed','fIns','fTel','fId','fInf','fDate','fDept','fDoc','fPart','fOrder','fDiag','fMemo'];
+  fields.forEach(function(id){
+    var el = $(id);
+    el.disabled = ro;
+    el.style.background = ro ? '#f5f7fa' : '#fff';
+    el.style.color = ro ? '#a8abb2' : '#606266';
+  });
+  document.querySelectorAll('#dlgMask .rd').forEach(function(r){ r.style.pointerEvents = ro ? 'none' : 'auto'; r.style.opacity = ro ? .5 : 1; });
+  $('specBody').querySelectorAll('input,select,button').forEach(function(el){ el.disabled = ro; });
+  $('dlgMask').style.display = 'flex';
+}
+function closeDlg(){ $('dlgMask').style.display = 'none'; }
+function saveForm(){ closeDlg(); toast('病理申请单保存成功'); }
+
+/* 查看申请单 */
+function openPreview(i){
+  var d = (typeof i === 'number') ? ROWS[i] : null;
+  $('pvName').textContent = d ? d.name : '无';
+  $('pvSex').textContent = d ? d.sex : '无';
+  $('pvAge').textContent = d ? (d.age + '岁') : '无';
+  $('pvTitle').textContent = (d ? d.name : '') + '-病理申请单预览';
+  $('prevMask').style.display = 'flex';
+}
+function closePreview(){ $('prevMask').style.display = 'none'; }
+
+/* 标本信息行 */
+function specRowHtml(){
+  return '<tr><td></td><td><input placeholder="请输入"></td><td><input placeholder="请输入"></td>' +
+    '<td><select><option></option><option>10%中性缓冲福尔马林</option><option>95%乙醇</option></select></td>' +
+    '<td><a class="del" onclick="delSpecRow(this)">删除</a></td></tr>';
+}
+function renderSpec(n){
+  var h = '';
+  for(var i = 0; i < n; i++) h += specRowHtml();
+  $('specBody').innerHTML = h;
+  renum();
+}
+function addSpecRow(){
+  $('specBody').insertAdjacentHTML('beforeend', specRowHtml());
+  renum();
+}
+function delSpecRow(a){
+  var tr = a.closest('tr');
+  if($('specBody').children.length <= 1){ toast('至少保留一行标本信息'); return; }
+  tr.remove(); renum();
+}
+function renum(){
+  $('specBody').querySelectorAll('tr').forEach(function(tr, i){ tr.children[0].textContent = i + 1; });
+}
+
+function doQuery(){ toast('已按当前条件查询'); }
+
+function delRow(i){
+  delIdx = i;
+  $('delMask').style.display = 'flex';
+}
+function closeDel(){ $('delMask').style.display = 'none'; delIdx = -1; }
+function confirmDel(){
+  if(delIdx > -1){ toast('已删除「' + ROWS[delIdx].name + '」的申请单'); }
+  $('delMask').style.display = 'none'; delIdx = -1;
+}
+
+/* 退回 */
+function openBack(){ $('backMask').style.display = 'flex'; }
+function closeBack(){ $('backMask').style.display = 'none'; }
+function doBack(){ closeBack(); toast('已退回所选标本'); }
+
+/* 标本打包 */
+function pkTab(t){
+  var un = t === 'un';
+  $('pkUn').style.display = un ? 'block' : 'none';
+  $('pkEd').style.display = un ? 'none' : 'block';
+  $('pkBtnUn').style.display = un ? 'flex' : 'none';
+  $('pkBtnEd').style.display = un ? 'none' : 'flex';
+  var tu = $('pkTabUn'), te = $('pkTabEd');
+  tu.style.color = un ? '#1e9fff' : '#606266';
+  tu.style.fontWeight = un ? '700' : '400';
+  tu.style.borderBottom = un ? '2px solid #1e9fff' : '2px solid transparent';
+  te.style.color = un ? '#606266' : '#1e9fff';
+  te.style.fontWeight = un ? '400' : '700';
+  te.style.borderBottom = un ? '2px solid transparent' : '2px solid #1e9fff';
+}
+function pkPackAll(){ openPkAll(); }
+function pkAddWrap(){ openPkWrap(); }
+function openPkAll(){ $('pkAllMask').style.display = 'flex'; }
+function closePkAll(){ $('pkAllMask').style.display = 'none'; }
+function confirmPkAll(){ closePkAll(); toast('一键打包：已将当前查询结果全部打包'); }
+function openPkWrap(){ $('pkWrapMask').style.display = 'flex'; }
+function closePkWrap(){ $('pkWrapMask').style.display = 'none'; }
+function confirmPkWrap(){
+  var v = $('pkWrapSel').value;
+  closePkWrap();
+  toast(v === '选择已有包裹号' ? '请选择包裹号' : '已将勾选标本加入包裹 ' + v);
+}
+function openPkOut(){ $('pkOutMask').style.display = 'flex'; }
+function closePkOut(){ $('pkOutMask').style.display = 'none'; }
+function confirmPkOut(){ closePkOut(); toast('已将勾选标本移出包裹'); }
+function openSpec(){ $('specMask').style.display = 'flex'; }
+function closeSpec(){ $('specMask').style.display = 'none'; }
+
+$('dlgMask').addEventListener('click', function(e){ if(e.target === this) closeDlg(); });
+$('prevMask').addEventListener('click', function(e){ if(e.target === this) closePreview(); });
+$('delMask').addEventListener('click', function(e){ if(e.target === this) closeDel(); });
+$('backMask').addEventListener('click', function(e){ if(e.target === this) closeBack(); });
+
+document.querySelectorAll('#dlgMask .rd').forEach(function(r){
+  r.addEventListener('click', function(){
+    this.parentNode.querySelectorAll('.rd .r').forEach(function(x){ x.classList.remove('on'); });
+    this.querySelector('.r').classList.add('on');
+  });
+});
+</script>
+
+<!-- ================= 原型编辑模式 ================= -->
+<style>
+#edBar{position:fixed;right:18px;bottom:18px;z-index:9000;font-family:inherit}
+#edToggle{height:36px;padding:0 16px;border:none;border-radius:18px;background:#1e9fff;color:#fff;font-size:13px;cursor:pointer;box-shadow:0 4px 14px rgba(30,159,255,.4)}
+#edToggle:hover{background:#4db3ff}
+#edToggle.on{background:#f56c6c}
+#edPanel{display:none;position:absolute;right:0;bottom:46px;width:250px;background:#fff;border-radius:6px;box-shadow:0 6px 26px rgba(0,0,0,.2);padding:12px 14px 14px;font-size:12px;color:#303133}
+#edPanel.on{display:block}
+#edPanel h4{margin:0 0 10px;font-size:13px;color:#303133;display:flex;justify-content:space-between;align-items:center}
+#edPanel h4 span{font-size:11px;color:#909399;font-weight:400}
+.ed-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;color:#606266}
+.ed-row+.ed-row{border-top:1px dashed #ebeef5}
+.ed-btn{height:26px;padding:0 10px;border:1px solid #DCDFE6;background:#fff;border-radius:3px;font-size:12px;color:#606266;cursor:pointer}
+.ed-btn:hover{border-color:#1e9fff;color:#1e9fff}
+.ed-btn.on{background:#1e9fff;border-color:#1e9fff;color:#fff}
+.ed-tip{margin-top:9px;padding-top:9px;border-top:1px solid #ebeef5;font-size:11px;color:#909399;line-height:1.7}
+.ed-tip b{color:#e6a23c;font-weight:600}
+body.ed-on #edToggle{background:#f56c6c}
+body.ed-on [data-ed-hover]{outline:1px dashed #1e9fff!important;outline-offset:1px;cursor:crosshair}
+body.ed-on [data-ed-sel]{outline:2px solid #1e9fff!important;outline-offset:1px;background-image:linear-gradient(rgba(30,159,255,.06),rgba(30,159,255,.06))}
+body.ed-on .pg-sec{min-height:120px}
+.ed-move{position:fixed;z-index:9500;pointer-events:none;background:#1e9fff;color:#fff;font-size:11px;padding:2px 7px;border-radius:3px;white-space:nowrap}
+#edNote{position:fixed;left:18px;bottom:18px;z-index:9000;background:#fffbe6;border:1px solid #ffe58f;color:#8c6d1f;font-size:12px;padding:8px 12px;border-radius:4px;display:none}
+#edNote.on{display:block}
+</style>
+
+<div id="edNote" data-page-node-id="5XDmtxjmQNxkQBNCalDNp0">编辑模式已开启：单击元素改文字，双击图片换图，<b data-page-node-id="Q9FcvteVoLwYl7iNcPU9nf">Ctrl+S 保存</b></div>
+
+<div id="edBar" data-page-node-id="mzMENAz6hCqOeaCnobugxs">
+  <div id="edPanel" data-page-node-id="kluEKo8Qo1TlZYEnuuUZB2">
+    <h4 data-page-node-id="p6cCdDlTujwoUuYsHdsDlV">原型编辑 <span id="edCount" data-page-node-id="ZlHW6ogTv7pyYCHRZY6kTe">已改 0 处</span></h4>
+    <div class="ed-row" data-page-node-id="0mHyz7cFCzZPFXZYpBQr7y"><span data-page-node-id="kImXnJeG07ihNtC2eMZ55y">编辑开关</span><button class="ed-btn" id="edSwitch" data-page-node-id="jjXWb0OzocUTaaaJaAZoGI">开启</button></div>
+    <div class="ed-row" data-page-node-id="MM7e4rcnuxZwo9yfPmBF7b"><span data-page-node-id="sDGwYXpzjWVKykePX1quJZ">拖动排序</span><button class="ed-btn" id="edDrag" data-page-node-id="eDLDB2JMUWsujbKMgKlpDF">关闭</button></div>
+    <div class="ed-row" data-page-node-id="YwAdt1jaXMAII0UjClETRp"><span data-page-node-id="hoEGy1VAlOGBolXNs7C8qT">显示可编辑区</span><button class="ed-btn" id="edMark" data-page-node-id="LfiihDxF23tA0yqBexk9A5">关闭</button></div>
+    <div class="ed-row" data-page-node-id="0y9CvEhBl1dvlxPrh14Wzt"><span data-page-node-id="tBhk7iY60HtaMMj0qIjcfk">当前选中</span><span id="edCur" style="color:#909399" data-page-node-id="RtdeCbOb6lIyXfFwjARMSJ">未选中</span></div>
+    <div style="display:flex;gap:6px;margin-top:10px" data-page-node-id="TSFuk7KqgSNuzdn0FoP6MB">
+      <button class="ed-btn" style="flex:1" id="edUndo" data-page-node-id="1z3WwB6DGI3DroKfC9ZN9x">撤销</button>
+      <button class="ed-btn" style="flex:1" id="edRedo" data-page-node-id="lHJM2wRgoWxC2VHcbju2d1">重做</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:6px" data-page-node-id="kc0AmJDQskYAbGDtjxY5M1">
+      <button class="ed-btn" style="flex:1" id="edDup" data-page-node-id="y5L4ihpE9kYneIjWmDewjD">复制元素</button>
+      <button class="ed-btn" style="flex:1" id="edDel" data-page-node-id="OzlfxX0odFB2rJfgft557n">删除元素</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:6px" data-page-node-id="RU1xOuNtfGACELdmOZrU8b">
+      <button class="ed-btn" style="flex:1" id="edSave" data-page-node-id="UDz53J21VuQFgzjwJkfaFM">保存改动</button>
+      <button class="ed-btn" style="flex:1" id="edReset" data-page-node-id="6lLzEA90SAlxvSZmUwBw8m">还原全部</button>
+    </div>
+    <div class="ed-tip" data-page-node-id="izq9BcJontDXPFKUlosHeh">
+      · 单击文字 → 直接改，回车 / 点击别处生效<br data-page-node-id="cdav58oRRMeByBynLKbxaL">
+      · 双击图片 → 换图（上传本地图片）<br data-page-node-id="zzYb9S932sRKRz7ufPV0r1">
+      · <b data-page-node-id="4vnfura8hVFxPAHH8AgbYe">Ctrl+S</b> 保存并下载新 HTML<br data-page-node-id="u0JLL5zDU7xERpzptsJiMO">
+      · 改动存在浏览器本地，重开自动恢复
+    </div>
+  </div>
+  <button id="edToggle" data-page-node-id="ynYjB86ITPKZSb7JrrwYGY">✎ 编辑模式</button>
+</div>
+
+<script>
+(function(){
+  var LS_KEY = 'protoEdit_v1_' + location.pathname.split('/').pop();
+  var on = false, dragOn = false, markOn = false;
+  var sel = null, dragEl = null;
+  var undoStack = [], redoStack = [], MAX = 120;
+  var count = 0;
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ---------- 状态存取 ---------- */
+  function loadState(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e){ return {}; } }
+  function saveState(st){ try { localStorage.setItem(LS_KEY, JSON.stringify(st)); } catch(e){ toast('保存失败：内容过大'); } }
+
+  /* ---------- 给元素打路径标识：用「最近的有 id 的祖先 + 子节点序号链」 ---------- */
+  function pathOf(el){
+    var parts = [], node = el;
+    while (node && node !== document.body){
+      var par = node.parentNode; if (!par) break;
+      if (node.id){ parts.unshift('#' + node.id); return parts.join('/'); }
+      parts.unshift(Array.prototype.indexOf.call(par.children, node));
+      node = par;
+    }
+    return parts.join('/');
+  }
+  function byPath(pt){
+    var segs = String(pt).split('/'), node = document.body;
+    for (var i = 0; i < segs.length; i++){
+      var s = segs[i];
+      if (!s) continue;
+      if (s.charAt(0) === '#'){ node = document.getElementById(s.slice(1)); }
+      else { node = node && node.children[+s]; }
+      if (!node) return null;
+    }
+    return node;
+  }
+
+  /* ---------- 采集所有可编辑改动（文本 + 图片） ---------- */
+  function collect(){
+    var st = loadState();
+    st.text = {}; st.img = {}; st.html = {};
+    var skip = { SCRIPT:1, STYLE:1, NOSCRIPT:1, SVG:1 };
+    document.querySelectorAll('body *').forEach(function(el){
+      if (skip[el.tagName]) return;
+      if (el.closest('#edBar') || el.closest('#edNote')) return;
+      if (!el.children.length){
+        var t = el.textContent;
+        var base = el.getAttribute('data-ed-base');
+        if (base !== null && t !== base) st.text[pathOf(el)] = t;
+      } else if (el.tagName === 'IMG' && el.src.indexOf('data:') === 0){
+        var bsrc = el.getAttribute('data-ed-bsrc');
+        if (bsrc !== null && el.src !== bsrc) st.img[pathOf(el)] = el.src;
+      }
+    });
+    return st;
+  }
+
+  /* ---------- 应用本地已存改动 ---------- */
+  function apply(){
+    var st = loadState();
+    var n = 0;
+    if (st.text) Object.keys(st.text).forEach(function(k){ var el = byPath(k); if (el){ el.textContent = st.text[k]; n++; } });
+    if (st.img) Object.keys(st.img).forEach(function(k){ var el = byPath(k); if (el) el.src = st.img[k]; });
+    count = n; $('edCount').textContent = '已改 ' + n + ' 处';
+  }
+
+  /* ---------- 记录基线，便于判断「是否改过」 ---------- */
+  function baseline(){
+    var skip = { SCRIPT:1, STYLE:1, NOSCRIPT:1, SVG:1 };
+    document.querySelectorAll('body *').forEach(function(el){
+      if (skip[el.tagName]) return;
+      if (el.closest('#edBar') || el.closest('#edNote')) return;
+      if (!el.children.length && el.getAttribute('data-ed-base') === null) el.setAttribute('data-ed-base', el.textContent);
+      if (el.tagName === 'IMG' && el.getAttribute('data-ed-bsrc') === null) el.setAttribute('data-ed-bsrc', el.src);
+    });
+  }
+
+  /* ---------- 撤销 / 重做（快照式：文本层） ---------- */
+  function snap(){
+    var s = {};
+    document.querySelectorAll('[data-ed-base]').forEach(function(el){
+      if (el.textContent !== el.getAttribute('data-ed-base')) s[pathOf(el)] = el.textContent;
+    });
+    return s;
+  }
+  function pushUndo(){ undoStack.push(snap()); if (undoStack.length > MAX) undoStack.shift(); redoStack.length = 0; }
+  function restore(s){
+    document.querySelectorAll('[data-ed-base]').forEach(function(el){ el.textContent = el.getAttribute('data-ed-base'); });
+    Object.keys(s).forEach(function(k){ var el = byPath(k); if (el) el.textContent = s[k]; });
+    recount(); persist();
+  }
+  function recount(){
+    var n = 0;
+    document.querySelectorAll('[data-ed-base]').forEach(function(el){ if (el.textContent !== el.getAttribute('data-ed-base')) n++; });
+    count = n; $('edCount').textContent = '已改 ' + n + ' 处';
+  }
+  function persist(){ saveState(collect()); }
+
+  /* ---------- 选中 & 编辑 ---------- */
+  function clearSel(){
+    if (sel) sel.removeAttribute('data-ed-sel');
+    sel = null; $('edCur').textContent = '未选中';
+  }
+  function select(el){
+    clearSel();
+    if (!el || el === document.body) return;
+    sel = el; el.setAttribute('data-ed-sel', '1');
+    var t = (el.children.length ? el.tagName.toLowerCase() + '（容器）' : el.textContent.trim().slice(0, 14)) || el.tagName.toLowerCase();
+    $('edCur').textContent = t;
+  }
+  function editText(el){
+    if (!el || el.children.length) { toast('该元素含子元素，请选择具体文字元素'); return; }
+    var old = el.textContent;
+    el.contentEditable = 'true';
+    el.focus();
+    var rg = document.createRange(); rg.selectNodeContents(el);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(rg);
+    function done(){
+      el.contentEditable = 'false';
+      el.removeEventListener('blur', done);
+      el.removeEventListener('keydown', key);
+      if (el.textContent !== old){ undoStack.push(snapBefore); redoStack.length = 0; }
+      recount(); persist();
+    }
+    var snapBefore = (function(){ var s = {}; document.querySelectorAll('[data-ed-base]').forEach(function(x){ if (x !== el && x.textContent !== x.getAttribute('data-ed-base')) s[pathOf(x)] = x.textContent; }); return s; })();
+    function key(e){
+      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); el.blur(); }
+      if (e.key === 'Escape'){ el.textContent = old; el.blur(); }
+      e.stopPropagation();
+    }
+    el.addEventListener('blur', done);
+    el.addEventListener('keydown', key);
+  }
+  function editImage(el){
+    var inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = function(){
+      var f = inp.files[0]; if (!f) return;
+      var fr = new FileReader();
+      fr.onload = function(){ el.src = fr.result; persist(); toast('图片已替换'); };
+      fr.readAsDataURL(f);
+    };
+    inp.click();
+  }
+
+  /* ---------- 拖动排序 ---------- */
+  function makeDraggable(el){
+    el.draggable = true;
+    el.addEventListener('dragstart', function(e){
+      dragEl = el; e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', 'x'); } catch(err){}
+    });
+  }
+  function initDrag(){
+    document.querySelectorAll('tr, li, .p, .sub, .tab').forEach(makeDraggable);
+  }
+
+  /* ---------- 导出 HTML ---------- */
+  function exportHTML(){
+    collect0();
+    function collect0(){ /* 先同步一次 */ }
+    var clone = document.documentElement.cloneNode(true);
+    // 清掉编辑态痕迹
+    clone.querySelectorAll('[contenteditable]').forEach(function(e){ e.removeAttribute('contenteditable'); });
+    clone.querySelectorAll('[data-ed-base],[data-ed-bsrc],[data-ed-sel],[data-ed-hover]').forEach(function(e){
+      e.removeAttribute('data-ed-base'); e.removeAttribute('data-ed-bsrc');
+      e.removeAttribute('data-ed-sel'); e.removeAttribute('data-ed-hover');
+    });
+    var bar = clone.querySelector('#edBar'); if (bar) bar.remove();
+    var note = clone.querySelector('#edNote'); if (note) note.remove();
+    var st = clone.querySelectorAll('style');
+    st.forEach(function(s){ if (s.textContent.indexOf('原型编辑模式') > -1) s.remove(); });
+    var sc = clone.querySelectorAll('script');
+    sc.forEach(function(s){ if (s.textContent.indexOf('protoEdit_v1_') > -1) s.remove(); });
+    var html = '<!DOCTYPE html>\n' + clone.outerHTML;
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '病理标本追溯系统.html';
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 3000);
+    toast('已保存并下载新的 HTML');
+  }
+
+  /* ---------- 事件绑定 ---------- */
+  function bindEditEvents(){
+    document.addEventListener('mouseover', function(e){
+      if (!on || !dragOn) return;
+      var el = e.target; if (!el || el.closest('#edBar')) return;
+      document.querySelectorAll('[data-ed-hover]').forEach(function(x){ x.removeAttribute('data-ed-hover'); });
+      el.setAttribute('data-ed-hover', '1');
+    });
+    document.addEventListener('mouseout', function(e){
+      if (e.target && e.target.removeAttribute) e.target.removeAttribute('data-ed-hover');
+    });
+    document.addEventListener('click', function(e){
+      if (!on) return;
+      if (e.target.closest('#edBar') || e.target.closest('#edNote')) return;
+      e.preventDefault(); e.stopPropagation();
+      select(e.target);
+    }, true);
+    document.addEventListener('dblclick', function(e){
+      if (!on) return;
+      if (e.target.closest('#edBar')) return;
+      e.preventDefault(); e.stopPropagation();
+      var el = e.target;
+      if (el.tagName === 'IMG') editImage(el); else editText(el);
+    }, true);
+    document.addEventListener('keydown', function(e){
+      if (!on) return;
+      var ctrl = e.ctrlKey || e.metaKey;
+      if (ctrl && e.key.toLowerCase() === 's'){ e.preventDefault(); saveState(collect()); toast('改动已保存到本地'); return; }
+      if (ctrl && e.key.toLowerCase() === 'z'){ e.preventDefault(); if (!undoStack.length) return; redoStack.push(snap()); restore(undoStack.pop()); toast('已撤销'); return; }
+      if (ctrl && e.key.toLowerCase() === 'y'){ e.preventDefault(); if (!redoStack.length) return; undoStack.push(snap()); restore(redoStack.pop()); toast('已重做'); return; }
+      if (e.key === 'Delete' && sel && !sel.isContentEditable){
+        e.preventDefault(); pushUndo(); sel.remove(); clearSel(); persist(); toast('已删除元素');
+      }
+    });
+    // 拖动排序
+    document.addEventListener('dragover', function(e){
+      if (!on || !dragOn || !dragEl) return;
+      e.preventDefault();
+      var t = e.target.closest('tr, li, .p, .sub, .tab');
+      if (!t || t === dragEl || t.parentNode !== dragEl.parentNode) return;
+      var r = t.getBoundingClientRect();
+      var after = (e.clientY - r.top) > r.height / 2;
+      t.parentNode.insertBefore(dragEl, after ? t.nextSibling : t);
+    });
+    document.addEventListener('drop', function(e){ if (dragEl){ e.preventDefault(); dragEl = null; toast('顺序已调整'); } });
+    document.addEventListener('dragend', function(){ dragEl = null; });
+  }
+
+  function setOn(v){
+    on = v;
+    document.body.classList.toggle('ed-on', on);
+    $('edToggle').classList.toggle('on', on);
+    $('edToggle').textContent = on ? '✎ 退出编辑' : '✎ 编辑模式';
+    $('edNote').classList.toggle('on', on);
+    $('edSwitch').classList.toggle('on', on);
+    $('edSwitch').textContent = on ? '已开启' : '开启';
+    if (!on) clearSel();
+  }
+
+  /* ---------- 初始化 ---------- */
+  function init(){
+    baseline();       // 先打基线（撤销的基准是原始文本）
+    apply();          // 再按本地存储恢复改动
+    bindEditEvents();
+    setOn(false);
+    $('edToggle').onclick = function(){ $('edPanel').classList.toggle('on'); };
+    $('edSwitch').onclick = function(){ setOn(!on); if (on) initDrag(); };
+    $('edDrag').onclick = function(){
+      dragOn = !dragOn;
+      this.textContent = dragOn ? '开启' : '关闭';
+      this.classList.toggle('on', dragOn);
+      if (dragOn) initDrag();
+    };
+    $('edMark').onclick = function(){
+      markOn = !markOn;
+      this.textContent = markOn ? '开启' : '关闭';
+      this.classList.toggle('on', markOn);
+      document.querySelectorAll('[data-ed-base]').forEach(function(el){ el.style.outline = markOn ? '1px dashed #e6a23c' : ''; });
+    };
+    $('edUndo').onclick = function(){ if (!undoStack.length) return toast('没有可撤销的操作'); redoStack.push(snap()); restore(undoStack.pop()); toast('已撤销'); };
+    $('edRedo').onclick = function(){ if (!redoStack.length) return toast('没有可重做的操作'); undoStack.push(snap()); restore(redoStack.pop()); toast('已重做'); };
+    $('edDup').onclick = function(){
+      if (!sel) return toast('请先单击选中一个元素');
+      pushUndo();
+      var c = sel.cloneNode(true);
+      c.removeAttribute('data-ed-sel');
+      c.querySelectorAll('[data-ed-base]').forEach(function(e){ e.removeAttribute('data-ed-base'); });
+      sel.parentNode.insertBefore(c, sel.nextSibling);
+      baseline(); persist(); toast('已复制元素');
+    };
+    $('edDel').onclick = function(){
+      if (!sel) return toast('请先单击选中一个元素');
+      pushUndo(); sel.remove(); clearSel(); persist(); toast('已删除元素');
+    };
+    $('edSave').onclick = function(){ saveState(collect()); exportHTML(); };
+    $('edReset').onclick = function(){
+      if (!confirm('确定还原全部改动？此操作不可撤销。')) return;
+      localStorage.removeItem(LS_KEY);
+      location.reload();
+    };
+    // 首次进入若已有本地改动，提示
+    var st = loadState();
+    var n = st.text ? Object.keys(st.text).length : 0;
+    if (n) { $('edPanel').classList.add('on'); if (window.toast) toast('检测到本地有 ' + n + ' 处改动，已自动恢复'); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+
+
+</body></html>
